@@ -463,11 +463,206 @@ body{
   .nb-content{margin-left:10px!important}
   .app-cover{break-inside:avoid}
 }
+
+/* ===== LOGIN SCREEN ===== */
+#loginScreen{
+  position:fixed;inset:0;z-index:999;
+  background:#E8D5C4;
+  background-image:radial-gradient(circle at 20% 20%,#F5C09A 0%,transparent 55%),
+                   radial-gradient(circle at 80% 80%,#E8A07C 0%,transparent 55%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px;overflow-y:auto;
+}
+.login-cover{
+  background:linear-gradient(135deg,#FF7A5C,#FF5252);
+  border-radius:18px;padding:20px 32px;margin-bottom:24px;
+  box-shadow:5px 5px 0 #C0392B;text-align:center;
+  max-width:480px;width:100%;
+}
+.login-cover .lc-title{font-family:'Caveat',cursive;font-size:2.2rem;font-weight:700;color:#fff;text-shadow:1px 2px 4px rgba(0,0,0,.2)}
+.login-cover .lc-sub{font-family:'Caveat',cursive;font-size:1.1rem;color:rgba(255,255,255,.85)}
+
+.profiles-wrap{
+  background:var(--paper);border-radius:4px 18px 18px 4px;
+  box-shadow:-5px 0 0 #DDD0B0,5px 5px 0 #C8B090,0 8px 36px rgba(0,0,0,.14);
+  max-width:480px;width:100%;padding:24px 28px;position:relative;
+  background-image:repeating-linear-gradient(to bottom,transparent 0px,transparent 31px,rgba(100,149,237,.10) 31px,rgba(100,149,237,.10) 32px);
+  background-size:100% 32px;
+}
+.profiles-title{font-family:'Caveat',cursive;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:16px;text-align:center}
+.profiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;margin-bottom:16px}
+.profile-card{
+  background:white;border:2.5px solid rgba(0,0,0,.08);border-radius:16px;
+  padding:16px 8px;text-align:center;cursor:pointer;
+  transition:all .18s;box-shadow:2px 2px 0 rgba(0,0,0,.06);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.profile-card:hover{transform:translateY(-3px);box-shadow:3px 5px 0 rgba(0,0,0,.1)}
+.profile-card.admin{border-color:#9B7FE8;background:linear-gradient(135deg,#F0EBFF,#E8E0FF)}
+.profile-emoji{font-size:2.4rem}
+.profile-name{font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;color:var(--ink)}
+.profile-pin-dots{display:flex;gap:4px;justify-content:center;margin-top:2px}
+.pin-dot{width:7px;height:7px;border-radius:50%;background:#ddd}
+
+/* PIN entry */
+.pin-screen{display:none;flex-direction:column;align-items:center;gap:16px}
+.pin-screen.active{display:flex}
+.pin-avatar{font-size:3.5rem;margin-bottom:4px}
+.pin-greeting{font-family:'Caveat',cursive;font-size:1.6rem;font-weight:700;color:var(--ink)}
+.pin-subtitle{font-family:'Patrick Hand',cursive;font-size:.95rem;color:var(--ink-light)}
+.pin-dots-row{display:flex;gap:10px;margin:4px 0}
+.pin-dot-big{
+  width:18px;height:18px;border-radius:50%;
+  background:#E0E0E0;border:2px solid #ccc;
+  transition:all .15s;
+}
+.pin-dot-big.filled{background:var(--ink);border-color:var(--ink)}
+.pin-dot-big.error{background:var(--red);border-color:var(--red);animation:shake .3s ease}
+.pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:220px}
+.pin-key{
+  font-family:'Caveat',cursive;font-size:1.6rem;font-weight:700;
+  padding:14px 0;border-radius:14px;border:2.5px solid rgba(0,0,0,.1);
+  background:white;cursor:pointer;transition:all .15s;box-shadow:2px 2px 0 rgba(0,0,0,.08);
+  text-align:center;
+}
+.pin-key:hover{transform:translateY(-2px);box-shadow:2px 4px 0 rgba(0,0,0,.12)}
+.pin-key:active{transform:translateY(1px);box-shadow:0 0 0 rgba(0,0,0,.08)}
+.pin-key.del{background:#FFF0F0;border-color:#F8BBD9;color:var(--red)}
+.pin-key.empty{background:transparent;border:none;cursor:default;box-shadow:none}
+.pin-back-btn{
+  font-family:'Caveat',cursive;font-size:1rem;color:var(--ink-light);
+  background:none;border:none;cursor:pointer;padding:4px 8px;
+  text-decoration:underline;
+}
+.pin-error-msg{
+  font-family:'Patrick Hand',cursive;font-size:.9rem;color:var(--red);
+  animation:fadeIn .2s ease;min-height:20px;text-align:center;
+}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* Add profile button */
+.btn-add-profile{
+  font-family:'Caveat',cursive;font-size:1rem;font-weight:700;
+  padding:8px 18px;background:white;border:2.5px dashed #ccc;
+  border-radius:24px;color:var(--ink-light);cursor:pointer;
+  transition:all .15s;width:100%;margin-top:4px;
+}
+.btn-add-profile:hover{border-color:var(--sky);color:var(--sky)}
+
+/* Logged in user bar */
+.user-bar{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.8);border-radius:12px;
+  padding:8px 14px;margin-bottom:14px;
+  border:1.5px solid rgba(0,0,0,.08);
+}
+.user-bar-avatar{font-size:1.4rem}
+.user-bar-name{font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;color:var(--ink);flex:1}
+.btn-logout{
+  font-family:'Caveat',cursive;font-size:.9rem;font-weight:700;
+  padding:5px 12px;background:#FFF0F0;border:2px solid #F8BBD9;
+  border-radius:20px;color:var(--red);cursor:pointer;transition:all .15s;
+}
+.btn-logout:hover{background:#FFE0E0}
+
+/* Admin switcher */
+.admin-user-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.admin-user-row{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:white;border:2px solid rgba(0,0,0,.07);border-radius:12px;
+  cursor:pointer;transition:all .15s;box-shadow:2px 2px 0 rgba(0,0,0,.04);
+}
+.admin-user-row:hover{border-color:var(--lav);transform:translateX(3px)}
+.admin-user-row.current{border-color:var(--lav);background:#F0EBFF}
+.aur-emoji{font-size:1.5rem}
+.aur-name{font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;color:var(--ink);flex:1}
+.aur-badge{font-family:'Patrick Hand',cursive;font-size:.75rem;padding:2px 8px;border-radius:10px;background:#E8E0FF;color:#6C5CE7}
+
 </style>
 </head>
 <body>
 
 <!-- COVER -->
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen">
+  <div class="login-cover">
+    <div class="lc-title">🍎 Diario Alimentare</div>
+    <div class="lc-sub">Chi sei oggi?</div>
+  </div>
+  <div class="profiles-wrap">
+    <!-- Lista profili -->
+    <div id="profilesView">
+      <div class="profiles-title">Scegli il tuo profilo</div>
+      <div class="profiles-grid" id="profilesGrid"></div>
+      <button class="btn-add-profile" onclick="showAddProfile()">＋ Aggiungi profilo</button>
+    </div>
+    <!-- Inserimento PIN -->
+    <div class="pin-screen" id="pinView">
+      <div class="pin-avatar" id="pinAvatar">😊</div>
+      <div class="pin-greeting" id="pinGreeting">Ciao!</div>
+      <div class="pin-subtitle">Inserisci il tuo PIN</div>
+      <div class="pin-dots-row" id="pinDots">
+        <div class="pin-dot-big" id="pd0"></div>
+        <div class="pin-dot-big" id="pd1"></div>
+        <div class="pin-dot-big" id="pd2"></div>
+        <div class="pin-dot-big" id="pd3"></div>
+      </div>
+      <div class="pin-error-msg" id="pinError"></div>
+      <div class="pin-keypad">
+        <button class="pin-key" onclick="pinKey('1')">1</button>
+        <button class="pin-key" onclick="pinKey('2')">2</button>
+        <button class="pin-key" onclick="pinKey('3')">3</button>
+        <button class="pin-key" onclick="pinKey('4')">4</button>
+        <button class="pin-key" onclick="pinKey('5')">5</button>
+        <button class="pin-key" onclick="pinKey('6')">6</button>
+        <button class="pin-key" onclick="pinKey('7')">7</button>
+        <button class="pin-key" onclick="pinKey('8')">8</button>
+        <button class="pin-key" onclick="pinKey('9')">9</button>
+        <button class="pin-key empty"></button>
+        <button class="pin-key" onclick="pinKey('0')">0</button>
+        <button class="pin-key del" onclick="pinKey('del')">⌫</button>
+      </div>
+      <button class="pin-back-btn" onclick="showProfiles()">← Cambia profilo</button>
+    </div>
+    <!-- Crea nuovo profilo -->
+    <div class="pin-screen" id="addProfileView">
+      <div style="font-family:'Caveat',cursive;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:8px">Nuovo profilo</div>
+      <div id="emojiPicker" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px;max-width:260px">
+        <span style="font-family:'Patrick Hand',cursive;font-size:.85rem;color:var(--ink-light);width:100%;text-align:center">Scegli emoji:</span>
+      </div>
+      <input id="newProfileName" placeholder="Nome (es. Marco)" maxlength="12"
+        style="font-family:'Caveat',cursive;font-size:1.2rem;padding:10px 16px;border-radius:12px;border:2.5px solid #ddd;width:220px;text-align:center;margin-bottom:8px;outline:none">
+      <div style="font-family:'Patrick Hand',cursive;font-size:.85rem;color:var(--ink-light);margin-bottom:6px">Scegli PIN a 4 cifre:</div>
+      <div class="pin-dots-row" id="newPinDots">
+        <div class="pin-dot-big" id="npd0"></div>
+        <div class="pin-dot-big" id="npd1"></div>
+        <div class="pin-dot-big" id="npd2"></div>
+        <div class="pin-dot-big" id="npd3"></div>
+      </div>
+      <div class="pin-keypad" style="margin-top:8px">
+        <button class="pin-key" onclick="newPinKey('1')">1</button>
+        <button class="pin-key" onclick="newPinKey('2')">2</button>
+        <button class="pin-key" onclick="newPinKey('3')">3</button>
+        <button class="pin-key" onclick="newPinKey('4')">4</button>
+        <button class="pin-key" onclick="newPinKey('5')">5</button>
+        <button class="pin-key" onclick="newPinKey('6')">6</button>
+        <button class="pin-key" onclick="newPinKey('7')">7</button>
+        <button class="pin-key" onclick="newPinKey('8')">8</button>
+        <button class="pin-key" onclick="newPinKey('9')">9</button>
+        <button class="pin-key empty"></button>
+        <button class="pin-key" onclick="newPinKey('0')">0</button>
+        <button class="pin-key del" onclick="newPinKey('del')">⌫</button>
+      </div>
+      <div class="pin-error-msg" id="newPinError"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button onclick="confirmAddProfile()" style="font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;padding:10px 22px;background:var(--green);border:2.5px solid #1A7A45;border-radius:24px;color:white;cursor:pointer;box-shadow:3px 3px 0 #1A7A45">✅ Crea</button>
+        <button class="pin-back-btn" onclick="showProfiles()">← Annulla</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="app-cover">
   <div class="cover-spiral"></div>
   <div class="cover-rings" id="coverRings"></div>
@@ -555,10 +750,324 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 // =====================================================================
+// AUTH / PROFILES
+// =====================================================================
+const PROFILES_KEY  = 'diario_profiles_v1';
+const PROFILE_EMOJIS = ['🦁','🐼','🦊','🐸','🦋','🐧','🦄','🐙','🦖','🐯','🐻','🐨','🦀','🦩','🐶','🐱'];
+
+let currentUser   = null; // { id, name, emoji, pin, isAdmin }
+let pinBuffer     = '';
+let newPinBuffer  = '';
+let selectedEmoji = '🦁';
+let pendingProfileId = null;
+
+function loadProfiles(){
+  try{
+    const raw = localStorage.getItem(PROFILES_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return [];
+}
+function saveProfiles(profiles){
+  localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+}
+
+function getUserStorageKey(userId){
+  return `diario_user_${userId}_v3`;
+}
+
+function loadUserState(userId){
+  try{
+    const raw = localStorage.getItem(getUserStorageKey(userId));
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { days:{}, menus:{} };
+}
+function saveUserState(userId, state){
+  try{ localStorage.setItem(getUserStorageKey(userId), JSON.stringify(state)); }catch(e){}
+}
+
+// loadState/saveState defined in PERSISTENCE section below
+
+// ── Render profile grid ──────────────────────────────────────────────
+function renderProfilesGrid(){
+  const profiles = loadProfiles();
+  const grid = document.getElementById('profilesGrid');
+  grid.innerHTML = '';
+
+  profiles.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'profile-card' + (p.isAdmin ? ' admin' : '');
+    card.innerHTML = `
+      <div class="profile-emoji">${p.emoji}</div>
+      <div class="profile-name">${p.name}</div>
+      <div class="profile-pin-dots">
+        ${[0,1,2,3].map(()=>'<div class="pin-dot"></div>').join('')}
+      </div>`;
+    card.onclick = () => selectProfile(p);
+    grid.appendChild(card);
+  });
+
+  // Se non ci sono profili, crea admin di default
+  if(profiles.length === 0){
+    showAddProfile(true);
+  }
+}
+
+// ── Seleziona profilo → mostra PIN ───────────────────────────────────
+function selectProfile(profile){
+  pendingProfileId = profile.id;
+  pinBuffer = '';
+  document.getElementById('pinAvatar').textContent   = profile.emoji;
+  document.getElementById('pinGreeting').textContent = `Ciao, ${profile.name}!`;
+  document.getElementById('pinError').textContent    = '';
+  updatePinDots('pinDots', 'pd', 0);
+
+  document.getElementById('profilesView').style.display = 'none';
+  document.getElementById('pinView').classList.add('active');
+  document.getElementById('addProfileView').classList.remove('active');
+}
+
+function showProfiles(){
+  pinBuffer = ''; newPinBuffer = '';
+  document.getElementById('profilesView').style.display = 'block';
+  document.getElementById('pinView').classList.remove('active');
+  document.getElementById('addProfileView').classList.remove('active');
+  renderProfilesGrid();
+}
+
+// ── PIN keypad ───────────────────────────────────────────────────────
+function pinKey(val){
+  if(val === 'del'){
+    pinBuffer = pinBuffer.slice(0,-1);
+  } else if(pinBuffer.length < 4){
+    pinBuffer += val;
+  }
+  updatePinDots('pinDots','pd', pinBuffer.length);
+  document.getElementById('pinError').textContent = '';
+
+  if(pinBuffer.length === 4){
+    // check PIN
+    const profiles = loadProfiles();
+    const profile  = profiles.find(p => p.id === pendingProfileId);
+    if(profile && profile.pin === pinBuffer){
+      loginAs(profile);
+    } else {
+      // Wrong PIN
+      for(let i=0;i<4;i++) document.getElementById(`pd${i}`).classList.add('error');
+      document.getElementById('pinError').textContent = '❌ PIN errato, riprova';
+      setTimeout(()=>{
+        pinBuffer = '';
+        updatePinDots('pinDots','pd',0);
+        for(let i=0;i<4;i++) document.getElementById(`pd${i}`).classList.remove('error');
+      }, 900);
+    }
+  }
+}
+
+function updatePinDots(rowId, prefix, count){
+  for(let i=0;i<4;i++){
+    const dot = document.getElementById(`${prefix}${i}`);
+    if(!dot) continue;
+    dot.classList.toggle('filled', i < count);
+    dot.classList.remove('error');
+  }
+}
+
+// ── Login ─────────────────────────────────────────────────────────────
+function loginAs(profile){
+  currentUser = profile;
+  appState = loadUserState(profile.id);
+
+  // Hide login screen, show app
+  document.getElementById('loginScreen').style.display = 'none';
+
+  // Update cover subtitle with user name
+  const sub = document.querySelector('.cover-text .subtitle');
+  if(sub) sub.textContent = `${profile.emoji} ${profile.name}`;
+
+  // Add user bar to notebook
+  renderUserBar();
+
+  // If admin, show switcher panel
+  if(profile.isAdmin) renderAdminSwitcher();
+
+  currentYear  = new Date().getFullYear();
+  currentMonth = new Date().getMonth();
+  selectedDate = null;
+  renderCalHeader();
+  renderCalendar();
+  updatePdfStatus();
+  const todayStr = new Date().toISOString().slice(0,10);
+  selectDay(todayStr);
+}
+
+function logout(){
+  currentUser = null;
+  appState = { days:{}, menus:{} };
+  selectedDate = null;
+
+  // Remove user bar
+  const ub = document.getElementById('userBar');
+  if(ub) ub.remove();
+  const as = document.getElementById('adminSwitcher');
+  if(as) as.remove();
+
+  document.getElementById('loginScreen').style.display = 'flex';
+  showProfiles();
+}
+
+// ── User bar (shown inside notebook when logged in) ───────────────────
+function renderUserBar(){
+  const existing = document.getElementById('userBar');
+  if(existing) existing.remove();
+
+  const nb = document.querySelector('.nb-content');
+  if(!nb) return;
+
+  const bar = document.createElement('div');
+  bar.id = 'userBar';
+  bar.className = 'user-bar';
+  bar.innerHTML = `
+    <div class="user-bar-avatar">${currentUser.emoji}</div>
+    <div class="user-bar-name">${currentUser.name}</div>
+    <button class="btn-logout" onclick="logout()">🚪 Esci</button>`;
+  nb.insertBefore(bar, nb.firstChild);
+}
+
+// ── Admin switcher (genitore può vedere altri diari) ──────────────────
+function renderAdminSwitcher(){
+  const existing = document.getElementById('adminSwitcher');
+  if(existing) existing.remove();
+
+  const profiles = loadProfiles().filter(p => !p.isAdmin);
+  if(profiles.length === 0) return;
+
+  const nb = document.querySelector('.nb-content');
+  if(!nb) return;
+
+  const wrap = document.createElement('div');
+  wrap.id = 'adminSwitcher';
+  wrap.style.cssText = 'background:linear-gradient(135deg,#F0EBFF,#E8E0FF);border:2px solid #9B7FE8;border-radius:14px;padding:14px 16px;margin-bottom:14px';
+
+  let html = `<div style="font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;color:#4834D4;margin-bottom:10px">👨‍👩‍👧 Stai vedendo il diario di:</div>
+              <div class="admin-user-list">`;
+  
+  // Add self (admin)
+  html += `<div class="admin-user-row current" id="adminRow_${currentUser.id}">
+    <div class="aur-emoji">${currentUser.emoji}</div>
+    <div class="aur-name">${currentUser.name}</div>
+    <div class="aur-badge">tu</div>
+  </div>`;
+
+  profiles.forEach(p => {
+    html += `<div class="admin-user-row" id="adminRow_${p.id}" onclick="adminSwitchTo('${p.id}')">
+      <div class="aur-emoji">${p.emoji}</div>
+      <div class="aur-name">${p.name}</div>
+      <div class="aur-badge">visualizza</div>
+    </div>`;
+  });
+
+  html += '</div>';
+  wrap.innerHTML = html;
+
+  const userBar = document.getElementById('userBar');
+  if(userBar) userBar.after(wrap);
+  else nb.insertBefore(wrap, nb.firstChild);
+}
+
+let viewingUserId = null; // admin viewing another user's data
+
+function adminSwitchTo(userId){
+  const profiles = loadProfiles();
+  const target = profiles.find(p => p.id === userId);
+  if(!target) return;
+
+  viewingUserId = userId;
+  appState = loadUserState(userId);
+
+  // Update UI highlight
+  document.querySelectorAll('.admin-user-row').forEach(r => r.classList.remove('current'));
+  const row = document.getElementById(`adminRow_${userId}`);
+  if(row) row.classList.add('current');
+
+  const sub = document.querySelector('.cover-text .subtitle');
+  if(sub) sub.textContent = `${target.emoji} ${target.name} (admin)`;
+
+  selectedDate = null;
+  document.getElementById('dayDetail').innerHTML = '';
+  renderCalendar();
+  updatePdfStatus();
+}
+
+// saveState is defined below - see STATE section override
+
+// ── Add new profile ───────────────────────────────────────────────────
+function showAddProfile(isFirst){
+  newPinBuffer = '';
+  selectedEmoji = PROFILE_EMOJIS[0];
+  document.getElementById('newProfileName').value = '';
+  document.getElementById('newPinError').textContent = '';
+  updatePinDots('newPinDots','npd',0);
+
+  // Build emoji picker
+  const picker = document.getElementById('emojiPicker');
+  picker.innerHTML = '<span style="font-family:\'Patrick Hand\',cursive;font-size:.85rem;color:var(--ink-light);width:100%;text-align:center">Scegli emoji:</span>';
+  PROFILE_EMOJIS.forEach(em => {
+    const btn = document.createElement('button');
+    btn.textContent = em;
+    btn.style.cssText = 'font-size:1.6rem;background:white;border:2.5px solid #ddd;border-radius:10px;padding:4px 7px;cursor:pointer;transition:all .15s';
+    btn.onclick = () => {
+      selectedEmoji = em;
+      picker.querySelectorAll('button').forEach(b => b.style.borderColor='#ddd');
+      btn.style.borderColor = '#9B7FE8';
+    };
+    if(em === selectedEmoji) btn.style.borderColor = '#9B7FE8';
+    picker.appendChild(btn);
+  });
+
+  document.getElementById('profilesView').style.display = isFirst ? 'none' : 'none';
+  document.getElementById('pinView').classList.remove('active');
+  document.getElementById('addProfileView').classList.add('active');
+}
+
+function newPinKey(val){
+  if(val === 'del'){
+    newPinBuffer = newPinBuffer.slice(0,-1);
+  } else if(newPinBuffer.length < 4){
+    newPinBuffer += val;
+  }
+  updatePinDots('newPinDots','npd', newPinBuffer.length);
+}
+
+function confirmAddProfile(){
+  const name = document.getElementById('newProfileName').value.trim();
+  const errEl = document.getElementById('newPinError');
+
+  if(!name){ errEl.textContent = '⚠️ Inserisci un nome'; return; }
+  if(newPinBuffer.length !== 4){ errEl.textContent = '⚠️ PIN deve essere 4 cifre'; return; }
+
+  const profiles = loadProfiles();
+  const isFirst  = profiles.length === 0;
+  const newProfile = {
+    id:      'u_' + Date.now(),
+    name,
+    emoji:   selectedEmoji,
+    pin:     newPinBuffer,
+    isAdmin: isFirst // primo profilo creato = admin
+  };
+  profiles.push(newProfile);
+  saveProfiles(profiles);
+
+  showProfiles();
+}
+
+
+// =====================================================================
 // STATE
 // =====================================================================
 const STORAGE_KEY = 'diario_alimentare_v3';
-let appState = loadState();
+let appState = { days:{}, menus:{} }; // will be loaded after login
 
 let currentYear  = new Date().getFullYear();
 let currentMonth = new Date().getMonth(); // 0-indexed
@@ -594,7 +1103,9 @@ function loadState(){
   return { days:{}, menus:{} };
 }
 function saveState(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); }catch(e){}
+  if(!currentUser) return;
+  if(viewingUserId && viewingUserId !== currentUser.id) return; // admin reading only
+  saveUserState(viewingUserId || currentUser.id, appState);
 }
 
 function getDayState(dateStr){
@@ -1875,6 +2386,8 @@ function getAllergensEatenForDay(dateStr){
 
 
 function init(){
+  // Show login screen first
+  renderProfilesGrid();
   // Rings
   for(let i=0;i<8;i++){
     const r=document.createElement('div'); r.className='c-ring';
