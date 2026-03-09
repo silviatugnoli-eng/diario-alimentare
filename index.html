@@ -983,10 +983,12 @@ function changeMonth(delta){
 // =====================================================================
 // PDF UPLOAD & PARSE
 // =====================================================================
+let _lastRawText = ''; // kept in memory for debug export
+
 async function handlePdfUpload(event){
   const file = event.target.files[0];
   if(!file) return;
-  event.target.value=''; // reset so same file can be re-uploaded
+  event.target.value='';
 
   setPdfStatus('loading','⏳ Lettura PDF...');
 
@@ -994,38 +996,59 @@ async function handlePdfUpload(event){
     const arrayBuf = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({data: arrayBuf}).promise;
 
+    // Extract text preserving newlines between items by using transform Y position
     let fullText = '';
-    for(let i=1; i<=pdf.numPages; i++){
-      const page = await pdf.getPage(i);
+    for(let pageNum=1; pageNum<=pdf.numPages; pageNum++){
+      const page    = await pdf.getPage(pageNum);
       const content = await page.getTextContent();
-      const pageText = content.items.map(x=>x.str).join(' ');
-      fullText += pageText + '\n';
+
+      // Group items by Y position (same row = same line)
+      // Then sort rows top→bottom, items left→right
+      const rows = {};
+      content.items.forEach(item => {
+        const y = Math.round(item.transform[5]); // Y coordinate rounded
+        if(!rows[y]) rows[y] = [];
+        rows[y].push({ x: item.transform[4], str: item.str });
+      });
+
+      // Sort rows descending by Y (PDF Y=0 is bottom)
+      const sortedYs = Object.keys(rows).map(Number).sort((a,b) => b - a);
+      sortedYs.forEach(y => {
+        const lineItems = rows[y].sort((a,b) => a.x - b.x);
+        const lineText  = lineItems.map(i => i.str).join(' ').trim();
+        if(lineText) fullText += lineText + '\n';
+      });
+      fullText += '\n';
     }
 
-    const parsed = parseMenuText(fullText);
+    _lastRawText = fullText;
+
+    const parsed   = parseMenuText(fullText);
     const dayCount = Object.keys(parsed).length;
 
     if(dayCount === 0){
       setPdfStatus('err','❌ Nessun dato trovato nel PDF');
-      // Show first 500 chars of extracted text for debugging
-      const preview500 = fullText.slice(0,400).replace(/</g,'&lt;');
+      const safe = fullText.slice(0, 600).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       showModal({
         title:'⚠️ PDF non riconosciuto',
-        body:`Non ho trovato giorni scolastici nel PDF.<br><br>
-          <b>Testo estratto (inizio):</b><br>
-          <div style="font-family:monospace;font-size:.75rem;background:#f5f5f5;padding:10px;border-radius:8px;max-height:120px;overflow:auto;margin-top:8px;white-space:pre-wrap">${preview500}</div><br>
-          Assicurati che il PDF contenga un menù mensile Elior/Ribo con i giorni nel formato "lun 02", "mar 03" ecc.`,
-        buttons:[{label:'Chiudi', action:'close', cls:'secondary'}]
+        body:`Non ho trovato giorni scolastici nel PDF.<br>
+              Clicca <b>"Scarica testo grezzo"</b> e mandamelo: lo uso per correggere il parser!<br><br>
+              <b>Anteprima testo estratto:</b>
+              <div style="font-family:monospace;font-size:.72rem;background:#f5f5f5;padding:10px;
+                border-radius:8px;max-height:160px;overflow:auto;margin-top:8px;white-space:pre-wrap;
+                border:1px solid #ddd">${safe}</div>`,
+        buttons:[
+          {label:'📄 Scarica testo grezzo', action: downloadRawText, cls:'primary'},
+          {label:'Chiudi', action:'close', cls:'secondary'}
+        ]
       });
       return;
     }
 
-    // Detect month/year from keys
-    const firstKey = Object.keys(parsed).sort()[0];
+    const firstKey  = Object.keys(parsed).sort()[0];
     const detectedYM = firstKey.slice(0,7);
-    const [dy,dm] = detectedYM.split('-').map(Number);
-
-    const preview = buildPreview(parsed);
+    const [dy,dm]   = detectedYM.split('-').map(Number);
+    const preview   = buildPreview(parsed);
 
     showModal({
       title:`📅 Menù trovato: ${MONTH_NAMES_IT[dm-1]} ${dy}`,
@@ -1041,11 +1064,23 @@ async function handlePdfUpload(event){
     console.error(err);
     setPdfStatus('err','❌ Errore nella lettura del PDF');
     showModal({
-      title:'❌ Errore',
-      body:'Non riesco a leggere questo PDF. Assicurati che sia un file PDF valido e non protetto da password.',
+      title:'❌ Errore lettura PDF',
+      body:`Errore: <code>${err.message}</code><br><br>
+            Prova a:<br>
+            • Aprire il PDF e risalvarlo con "Stampa → Salva come PDF"<br>
+            • Assicurarti che non sia protetto da password`,
       buttons:[{label:'Chiudi', action:'close', cls:'secondary'}]
     });
   }
+}
+
+function downloadRawText(){
+  const blob = new Blob([_lastRawText], {type:'text/plain;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'pdf-testo-grezzo.txt'; a.click();
+  URL.revokeObjectURL(url);
+  closeModal();
 }
 
 function confirmLoadMenu(parsed, ym, year, month){
