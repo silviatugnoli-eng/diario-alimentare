@@ -493,6 +493,7 @@ body{
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <div class="pdf-status none" id="pdfStatus">📄 Nessun menù caricato</div>
         <button class="btn-upload-pdf" onclick="document.getElementById('pdfInput').click()">📤 Carica PDF menù</button>
+        <button id="btnClearMenu" onclick="clearCurrentMonthMenu()" style="display:none;font-family:Caveat,cursive;font-size:1rem;font-weight:700;padding:8px 14px;background:#fff;border:2.5px solid #F46B6B;border-radius:24px;color:#F46B6B;cursor:pointer;box-shadow:2px 2px 0 #F46B6B" title="Cancella il menù di questo mese e ricaricalo da PDF">🗑️ Cancella menù</button>
         <input type="file" id="pdfInput" accept=".pdf" onchange="handlePdfUpload(event)">
       </div>
     </div>
@@ -520,6 +521,7 @@ body{
   <button class="btn-dl green" onclick="downloadCSV()">📥 Scarica diario (CSV)</button>
   <button class="btn-dl blue" onclick="window.print()">🖨️ Stampa</button>
   <button class="btn-dl" id="btnAnalysis" style="background:linear-gradient(135deg,#A29BFE,#6C5CE7);border:2.5px solid #4834D4;box-shadow:3px 3px 0 #4834D4" onclick="toggleAnalysis()">🔍 Analisi sintomi</button>
+  <button class="btn-dl" style="background:linear-gradient(135deg,#636e72,#2d3436);border:2.5px solid #1a1a2e;box-shadow:3px 3px 0 #1a1a2e" onclick="downloadRawText()" title="Scarica il testo grezzo estratto dall'ultimo PDF caricato">🐛 Debug PDF</button>
 </div>
 
 <!-- ANALYSIS PANEL -->
@@ -1401,12 +1403,38 @@ function setPdfStatus(type, msg){
 function updatePdfStatus(){
   const ym = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
   const m = getMonthMenu(ym);
+  const clearBtn = document.getElementById('btnClearMenu');
   if(m){
     const cnt = Object.keys(m).length;
     setPdfStatus('ok',`✅ ${cnt} giorni caricati`);
+    if(clearBtn) clearBtn.style.display = 'block';
   } else {
     setPdfStatus('none','📄 Nessun menù caricato');
+    if(clearBtn) clearBtn.style.display = 'none';
   }
+}
+
+function clearCurrentMonthMenu(){
+  const ym = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
+  const monthName = MONTH_NAMES_IT[currentMonth];
+  showModal({
+    title: '🗑️ Cancella menù ' + monthName + '?',
+    body: 'Verranno rimossi tutti i piatti del menù scolastico di <b>' + monthName + ' ' + currentYear + '</b> caricati da PDF.<br><br>' +
+          '⚠️ I dati che hai già inserito (cosa hai mangiato, sintomi, note) <b>non vengono cancellati</b>.',
+    buttons:[
+      {label:'✅ Sì, cancella', action: ()=>{ 
+        delete appState.menus[ym];
+        saveState();
+        closeModal();
+        selectedDate = null;
+        document.getElementById('dayDetail').innerHTML = '';
+        updatePdfStatus();
+        renderCalendar();
+        setPdfStatus('none','📄 Menù cancellato — carica il nuovo PDF');
+      }, cls:'primary'},
+      {label:'Annulla', action:'close', cls:'secondary'}
+    ]
+  });
 }
 
 // =====================================================================
