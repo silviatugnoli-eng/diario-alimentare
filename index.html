@@ -1007,9 +1007,14 @@ async function handlePdfUpload(event){
 
     if(dayCount === 0){
       setPdfStatus('err','❌ Nessun dato trovato nel PDF');
+      // Show first 500 chars of extracted text for debugging
+      const preview500 = fullText.slice(0,400).replace(/</g,'&lt;');
       showModal({
         title:'⚠️ PDF non riconosciuto',
-        body:`Non ho trovato dati del menù scolastico in questo PDF.<br><br>Assicurati di caricare il PDF del <b>menù mensile</b> della mensa (formato Elior/Ribo).`,
+        body:`Non ho trovato giorni scolastici nel PDF.<br><br>
+          <b>Testo estratto (inizio):</b><br>
+          <div style="font-family:monospace;font-size:.75rem;background:#f5f5f5;padding:10px;border-radius:8px;max-height:120px;overflow:auto;margin-top:8px;white-space:pre-wrap">${preview500}</div><br>
+          Assicurati che il PDF contenga un menù mensile Elior/Ribo con i giorni nel formato "lun 02", "mar 03" ecc.`,
         buttons:[{label:'Chiudi', action:'close', cls:'secondary'}]
       });
       return;
@@ -1054,178 +1059,345 @@ function confirmLoadMenu(parsed, ym, year, month){
 }
 
 // =====================================================================
-// PDF PARSER — Elior/Ribo format
+// PDF PARSER — Elior/Ribo format  (rewritten v2)
+//
+// Il PDF Elior/Ribo ha questa struttura:
+//   • Blocco testo con TUTTI i piatti in colonne: primo|secondo|contorno|merenda|snack
+//     per ogni giorno, uno dopo l'altro (22 righe = 22 giorni scolastici)
+//   • Poi in fondo la lista dei giorni: "lun 02 (S.7)" "mar 03 (S.7)" etc.
+//
+// Strategia:
+//   1. Estrai la lista ordinata dei giorni scolastici (array di dayNums)
+//   2. Separa il blocco piatti dalla parte "LEGENDA/NOTE" in fondo
+//   3. Suddividi il testo piatti in token "cibo + suoi allergeni"
+//   4. Raggruppa i token in 5 colonne (primo, secondo, contorno, merenda, snack)
+//      usando keyword per capire a quale slot appartiene ogni token
+//   5. Associa il token[i] di ciascuna colonna al giorno[i]
 // =====================================================================
-function parseMenuText(text){
-  const result = {};
 
-  // Detect year/month from text patterns like "MARZO 2026" or "marzo 2026"
-  const MONTHS_IT = {
-    'gennaio':0,'febbraio':1,'marzo':2,'aprile':3,'maggio':4,'giugno':5,
-    'luglio':6,'agosto':7,'settembre':8,'ottobre':9,'novembre':10,'dicembre':11
-  };
+const ALLERGENS_LIST = ['glutine','soia','latte','uova','uovo','pesce','senape','sesamo',
+  'lupino','molluschi','crostacei','frutta a guscio','arachidi','sedano','solfiti','anidride solforosa'];
 
+const MONTHS_MAP = {
+  'gennaio':1,'febbraio':2,'marzo':3,'aprile':4,'maggio':5,'giugno':6,
+  'luglio':7,'agosto':8,'settembre':9,'ottobre':10,'novembre':11,'dicembre':12
+};
+
+function parseMenuText(rawText) {
+  // ── 1. Normalizza ──────────────────────────────────────────────────
+  // pdf.js unisce tutto con spazi; normalizziamo newline e spazi
+  let text = rawText
+    .replace(/\r\n/g, '\n')
+    .replace(/[ \t]+/g, ' ')
+    .trim();
+
+  // ── 2. Rileva mese e anno ──────────────────────────────────────────
   let detectedYear  = new Date().getFullYear();
-  let detectedMonth = new Date().getMonth();
+  let detectedMonth = new Date().getMonth() + 1; // 1-indexed
 
-  const monthMatch = text.match(/\b(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)\s+(\d{4})\b/i);
-  if(monthMatch){
-    detectedMonth = MONTHS_IT[monthMatch[1].toLowerCase()];
-    detectedYear  = parseInt(monthMatch[2]);
+  const mMatch = text.match(/\b(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)\s+(\d{4})\b/i);
+  if (mMatch) {
+    detectedMonth = MONTHS_MAP[mMatch[1].toLowerCase()];
+    detectedYear  = parseInt(mMatch[2]);
   }
 
-  // Extract school days: patterns like "lun 02" "mar 03" etc.
-  const DAY_ABBR_IT = {
-    'lun':1,'mar':2,'mer':3,'gio':4,'ven':5
-  };
-
-  // Find all "day_abbr day_num" occurrences
-  const dayPattern = /\b(lun|mar|mer|gio|ven)\s+(\d{1,2})\b/gi;
-  let match;
-  const foundDays = [];
-
-  while((match = dayPattern.exec(text)) !== null){
-    const abbr = match[1].toLowerCase();
-    const dayNum = parseInt(match[2]);
-    if(DAY_ABBR_IT[abbr] && dayNum>=1 && dayNum<=31){
-      foundDays.push({abbr, dayNum, pos: match.index});
+  // ── 3. Estrai i giorni scolastici in ordine ────────────────────────
+  // Pattern: "lun 02 (S.7)" oppure "lun 02" — nel PDF appaiono tutti in fondo
+  const dayPattern = /\b(lun|mar|mer|gio|ven)\s+(\d{1,2})(?:\s*\(S\.\d+\))?/gi;
+  const schoolDays = []; // [{dayNum, dateStr}]
+  let m;
+  while ((m = dayPattern.exec(text)) !== null) {
+    const dayNum = parseInt(m[2]);
+    if (dayNum >= 1 && dayNum <= 31) {
+      const ds = buildDateStr(detectedYear, detectedMonth, dayNum);
+      if (ds && !schoolDays.find(d => d.dateStr === ds)) {
+        schoolDays.push({ dayNum, dateStr: ds });
+      }
     }
   }
 
-  if(foundDays.length === 0){
-    // Fallback: try date patterns like "02/03/2026" or "2 marzo"
-    return parseFallback(text, detectedYear, detectedMonth);
-  }
+  if (schoolDays.length === 0) return {};
 
-  // For each found day, extract surrounding text as food items
-  foundDays.forEach((fd, fi)=>{
-    const dateStr = buildDateStr(detectedYear, detectedMonth+1, fd.dayNum);
-    if(!dateStr) return;
+  const N = schoolDays.length; // number of school days (usually 22)
 
-    const start = fd.pos;
-    const end   = fi+1 < foundDays.length ? foundDays[fi+1].pos : text.length;
-    const chunk = text.slice(start, end);
+  // ── 4. Isola il blocco "piatti" (prima di LEGENDA/NOTE) ────────────
+  const cutMarkers = /\b(LEGENDA|NOTE:|I LEGUMI|IL PESCE|I PRODOTTI|Piatto da scoprire|ROTAZIONE|Menu Convenzionale|Primi piatti)\b/i;
+  const cutMatch   = text.search(cutMarkers);
+  const dishesText = cutMatch > 0 ? text.slice(0, cutMatch) : text;
 
-    const parsed = parseChunk(chunk);
-    if(parsed) result[dateStr] = parsed;
+  // ── 5. Tokenizza: ogni "piatto" è Nome + opzionali allergeni ────────
+  // Gli allergeni sono sempre in minuscolo separati da virgola
+  // Il nome del piatto è in Title Case o MAIUSCOLO
+  // Strategia: dividi sul pattern "parola-maiuscola seguita da testo piatto"
+  // separando via le righe di soli allergeni
+
+  const tokens = tokenizeDishes(dishesText);
+
+  // ── 6. Classifica ogni token in una delle 5 colonne ─────────────────
+  const cols = { primo:[], secondo:[], contorno:[], merenda:[], snack:[] };
+
+  const RE = {
+    primo:    /\b(sedani|pipe|celentani|crema di verdura|crema di|halibut|gramigna|gnocchi|tagliatelle|farfalle|penne|fusilli|spaghetti|ditalini|quadrucci|riso\s+con|orzo\s+con|pasta|minestra|zuppa|brodo)\b/i,
+    secondo:  /\b(mozzarella|hamburger|frittata|spinacina|polpett|svizzera|bocconcini di pollo|bocconcini di verdure|pollo al forno|merluzzo|halibut|stracchino|robiola|cotoletta|prosciutto|fagioli all|crocchette|tortino|mousse di|polpette di)\b/i,
+    contorno: /\b(carote|insalata|piselli|fagiolini|patate al|spinaci|zucchine|cavolo|finocch|pinzimonio)\b/i,
+    merenda:  /\b(biscotti|panino al cioc|crackers|triangolini|plumcake|focaccina|yogurt|succo|ciambella|latte frescolatte|frutta merenda)\b/i,
+    snack:    /\b(snack|mattina|kiwi|frutta jolly|arancia\s+mattina|banana\s+mattina|latte\s+frescolatte\s+mattina)\b/i,
+  };
+
+  // Tokens che contengono "Snack 1 -" o "Mattina" → snack
+  // Tokens con "Merenda" standalone o latte frescolatte senza "Mattina" → merenda
+  tokens.forEach(tok => {
+    const n = tok.name;
+    if (!n || n.length < 2) return;
+
+    // Snack mattina ha sempre "Mattina" o "Snack 1"
+    if (/snack\s*1|mattina/i.test(n)) {
+      cols.snack.push(tok);
+    } else if (RE.merenda.test(n)) {
+      cols.merenda.push(tok);
+    } else if (RE.contorno.test(n)) {
+      cols.contorno.push(tok);
+    } else if (RE.secondo.test(n)) {
+      cols.secondo.push(tok);
+    } else if (RE.primo.test(n)) {
+      cols.primo.push(tok);
+    } else {
+      // Heuristic fallback: if it looks like a food and has allergens it's probably pranzo
+      if (tok.allergens.length > 0) cols.primo.push(tok);
+      else if (/\b(banana|frutta)\b/i.test(n)) cols.merenda.push(tok);
+    }
+  });
+
+  // ── 7. Associa colonne → giorni ────────────────────────────────────
+  // Ogni colonna dovrebbe avere esattamente N elementi (uno per giorno)
+  // Se una colonna ha meno elementi, distribuiamo quello che c'è
+  const result = {};
+
+  schoolDays.forEach((day, i) => {
+    const menu = {
+      colazione: [{ name: 'Latte fresco + Pane', allergens: ['latte', 'glutine'] }],
+      spuntino1: [],
+      pranzo:    [],
+      merenda:   [],
+      cena:      [{ name: 'Pasto libero 🏠', allergens: [] }]
+    };
+
+    const get = (col) => cols[col][i] || null;
+
+    const primo    = get('primo');
+    const secondo  = get('secondo');
+    const contorno = get('contorno');
+    const merenda  = get('merenda');
+    const snack    = get('snack');
+
+    if (primo)    menu.pranzo.push({ ...primo,   category: 'primo'    });
+    if (secondo)  menu.pranzo.push({ ...secondo, category: 'secondo'  });
+    if (contorno) menu.pranzo.push({ ...contorno,category: 'contorno' });
+    menu.pranzo.push({ name: 'Frutta fresca + Pane', allergens: ['glutine'], category: 'extra' });
+
+    if (merenda)  menu.merenda.push(merenda);
+    else          menu.merenda.push({ name: 'Frutta 🍎', allergens: [] });
+
+    if (snack) {
+      // Clean up snack name: "Snack 1 - Kiwi Mattina" → "Kiwi 🥝"
+      const snackName = cleanSnackName(snack.name);
+      menu.spuntino1.push({ name: snackName, allergens: snack.allergens });
+    } else {
+      menu.spuntino1.push({ name: 'Frutta fresca 🍎', allergens: [] });
+    }
+
+    result[day.dateStr] = menu;
   });
 
   return result;
 }
 
-function buildDateStr(year, month, day){
-  if(day<1||day>31) return null;
-  try{
-    const d = new Date(year, month-1, day);
-    if(d.getMonth()!==month-1) return null;
-    return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-  }catch(e){return null;}
-}
+// ── Tokenizer ─────────────────────────────────────────────────────────
+// Produce array di {name, allergens} dal blocco testo piatti
+function tokenizeDishes(text) {
+  const tokens = [];
+  const ALLERG_RE = new RegExp(
+    '\\b(' + ALLERGENS_LIST.map(a => a.replace(/\s/g,'\\s+')).join('|') + ')\\b', 'gi'
+  );
 
-function parseChunk(chunk){
-  // Remove the day header itself
-  const clean = chunk
-    .replace(/\(S\.\d+\)/gi,'')  // remove week refs
-    .replace(/\b(lun|mar|mer|gio|ven)\s+\d{1,2}\b/gi,'')
-    .replace(/\*/g,'')
-    .replace(/\.\./g,'')
-    .replace(/\s{2,}/g,' ')
+  // Sostituiamo i blocchi allergenici (parole minuscole separate da virgole)
+  // con un separatore ||| per poi splittare
+  // Un blocco allergeni è: una o più parole dall'elenco separate da virgola (e spazio opzionale)
+  const allergBlockRE = /(?:(?:glutine|soia|latte|uova|uovo|pesce|senape|sesamo|lupino|molluschi|crostacei|frutta a guscio|arachidi|sedano|solfiti|anidride solforosa)(?:[,\s]+|$))+/gi;
+
+  // Prima salviamo quali allergeni appartengono a quale "slot" di testo
+  // facendo uno split progressivo
+  let remaining = text;
+
+  // Rimuovi garbage noto
+  remaining = remaining
+    .replace(/\(S\.\d+\)/gi, '')
+    .replace(/\bLt\s+\d+\b/gi, '')
+    .replace(/\*\s*\*/g, '')
+    .replace(/\*\*/g, '')
+    .replace(/\.\.\./g, '')
+    .replace(/\.\./g, '')
+    .replace(/\*/g, '')
+    .replace(/­/g, '-')   // soft hyphen
+    .replace(/\s{2,}/g, ' ')
     .trim();
 
-  // Split by known allergen separators and food separators
-  // Foods are separated by allergen lines or capital words
-  const lines = clean.split(/(?=[A-Z][a-z])/);
+  // Strategia: splitti sul pattern "NOME allergens NOME allergens ..."
+  // usando il fatto che i nomi iniziano con maiuscola
+  // e gli allergeni sono in minuscolo
 
-  // Try to detect structured sections: we look for keywords
-  const allFoodTokens = extractFoodTokens(clean);
+  // Dividi per newline prima
+  const lines = remaining.split(/\n+/);
 
-  // Attempt to assign to meal slots based on position/keywords
-  const dayMenu = {
-    colazione: [],
-    spuntino1: [],
-    pranzo: [],
-    merenda: [],
-    cena: []
+  let currentName = '';
+  let currentAllergens = [];
+
+  const flush = () => {
+    const n = currentName.trim().replace(/\s+/g,' ').replace(/[/*.\-]+$/, '').trim();
+    if (n.length > 2) {
+      tokens.push({ name: capitalizeFood(n), allergens: [...currentAllergens] });
+    }
+    currentName = '';
+    currentAllergens = [];
   };
 
-  // Snack keywords
-  const snackKeywords = /snack|spuntino|mattina|kiwi|frutta jolly|arancia|banana mattina/i;
-  const merende_keywords = /merenda|latte frescolatte|biscotti.*latte|panino.*cioc|crackers|triangolini|plumcake|focaccina|yogurt|succo/i;
-  const secondi_keywords = /mozzarella|halibut|hamburger|frittata|spinacin|polpett|svizzera|bocconcin|pollo.*forno|merluzzo.*dor|stracchino|robiola|cotoletta|mousse|prosciutto|fagioli.*uccell|crocchette/i;
-  const contorno_keywords = /carote|insalata|piselli|fagiolini|patate|spinaci|zucchine|cavolo|finocch|pinzimonio|verdur/i;
+  lines.forEach(line => {
+    line = line.trim();
+    if (!line) return;
 
-  let primoFound = false;
-  let secondoFound = false;
-
-  allFoodTokens.forEach(token=>{
-    const t = token.trim();
-    if(t.length < 3) return;
-
-    if(snackKeywords.test(t)){
-      dayMenu.spuntino1.push({name: cleanFoodName(t), allergens: extractAllergens(t)});
-    } else if(merende_keywords.test(t)){
-      dayMenu.merenda.push({name: cleanFoodName(t), allergens: extractAllergens(t)});
-    } else if(!primoFound && /pasta|riso|gnocchi|tagliatelle|farfalle|penne|fusilli|spaghetti|ditalini|crema.*verdura|zuppa|minestra|orzo.*brodo|quadrucci|gramigna|celentani|sedani|pipe con/i.test(t)){
-      primoFound = true;
-      dayMenu.pranzo.push({name: cleanFoodName(t), allergens: extractAllergens(t), category:'primo'});
-    } else if(secondi_keywords.test(t) && !secondoFound){
-      secondoFound = true;
-      dayMenu.pranzo.push({name: cleanFoodName(t), allergens: extractAllergens(t), category:'secondo'});
-    } else if(contorno_keywords.test(t)){
-      dayMenu.pranzo.push({name: cleanFoodName(t), allergens: extractAllergens(t), category:'contorno'});
-    } else if(/latte|pane|crackers/i.test(t) && !snackKeywords.test(t)){
-      dayMenu.colazione.push({name: cleanFoodName(t), allergens: extractAllergens(t)});
+    // È una riga di soli allergeni?
+    const isAllergLine = isAllergenLine(line);
+    if (isAllergLine) {
+      currentAllergens = extractAllergens(line);
+      flush();
+      return;
     }
+
+    // Contiene sia nome che allergeni inline (es: "Hamburger Di Bovino glutine,soia,senape")
+    // Trova se la riga ha allergeni in fondo
+    const inlineAllergs = extractInlineAllergens(line);
+    if (inlineAllergs.found) {
+      // Se c'era qualcosa prima, fluscia
+      if (currentName) flush();
+      currentName = inlineAllergs.namePart;
+      currentAllergens = inlineAllergs.allergens;
+      flush();
+      return;
+    }
+
+    // La riga sembra solo un nome (Title Case o MAIUSCOLO)
+    // Ma potrebbe contenere più nomi concatenati (es: "Banana Merenda Snack 1 - Latte")
+    // Prova a spezzare per keyword note
+    const subTokens = splitByKnownKeywords(line);
+    if (subTokens.length > 1) {
+      if (currentName) flush();
+      subTokens.forEach(st => {
+        currentName = st;
+        currentAllergens = [];
+        flush();
+      });
+      return;
+    }
+
+    // Riga semplice: è la continuazione del nome corrente o un nuovo nome?
+    if (currentName && looksLikeNewFood(line, currentName)) {
+      flush();
+    }
+    currentName += (currentName ? ' ' : '') + line;
   });
 
-  // Ensure colazione has something
-  if(dayMenu.colazione.length===0){
-    dayMenu.colazione.push({name:'Latte fresco + Pane', allergens:['latte','glutine']});
-  }
-  // Ensure spuntino has something
-  if(dayMenu.spuntino1.length===0){
-    dayMenu.spuntino1.push({name:'Frutta fresca 🍎', allergens:[]});
-  }
-  // Ensure cena is empty (home)
-  dayMenu.cena = [{name:'Pasto libero 🏠', allergens:[]}];
-  // Add extra to pranzo if missing
-  if(dayMenu.pranzo.length>0 && !dayMenu.pranzo.find(x=>x.name.includes('Frutta'))){
-    dayMenu.pranzo.push({name:'Frutta fresca + Pane', allergens:['glutine'], category:'extra'});
-  }
-
-  return dayMenu;
+  if (currentName) flush();
+  return tokens;
 }
 
-const ALLERGENS_LIST = ['glutine','soia','latte','uova','uovo','pesce','senape','sesamo','lupino','molluschi','crostacei','frutta a guscio','arachidi','sedano','solfiti','anidride solforosa'];
+function isAllergenLine(line) {
+  const words = line.toLowerCase().split(/[,\s]+/).filter(Boolean);
+  const allergWords = ALLERGENS_LIST.flatMap(a => a.split(' '));
+  const matchCount = words.filter(w => allergWords.includes(w)).length;
+  return matchCount > 0 && matchCount >= words.length * 0.7;
+}
 
-function extractAllergens(text){
+function extractInlineAllergens(line) {
+  // Cerca il punto in cui iniziano gli allergeni nella riga
+  // Pattern: "Nome Piatto glutine,soia,latte"
+  const allergStart = /\s+(glutine|soia|latte|uova|uovo|pesce|senape|sesamo|lupino|molluschi|crostacei|frutta\s+a\s+guscio|arachidi)/i;
+  const match = line.match(allergStart);
+  if (!match) return { found: false };
+  const idx = line.indexOf(match[0]);
+  const namePart = line.slice(0, idx).trim();
+  const allergPart = line.slice(idx).trim();
+  const allergens = extractAllergens(allergPart);
+  if (namePart.length > 2 && allergens.length > 0) {
+    return { found: true, namePart, allergens };
+  }
+  return { found: false };
+}
+
+// Spezza una riga che contiene più piatti concatenati
+// Es: "Banana Merenda Snack 1 ­ Latte Frescolatte"
+// Es: "RISO Con SUGO AL POMODORO Celentani Con Sugo Aglio e Olio"
+const SPLIT_KEYWORDS = [
+  'Snack 1', 'Snack1', 'Merenda', 'Banana Merenda', 'Frutta Merenda',
+  'Mattina', 'Frescolatte'
+];
+function splitByKnownKeywords(line) {
+  // Prova a dividere alle keyword
+  for (const kw of SPLIT_KEYWORDS) {
+    const idx = line.indexOf(kw);
+    if (idx > 5) { // non all'inizio
+      const part1 = line.slice(0, idx).trim();
+      const part2 = line.slice(idx).trim();
+      if (part1.length > 2 && part2.length > 2) {
+        return [part1, part2];
+      }
+    }
+  }
+  return [line];
+}
+
+function looksLikeNewFood(line, current) {
+  // Una nuova riga inizia un nuovo piatto se inizia con maiuscola
+  // e non sembra la continuazione di un nome composito
+  return /^[A-Z]/.test(line) && current.length > 3;
+}
+
+function cleanSnackName(name) {
+  // "Snack 1 - Kiwi Mattina" → "Kiwi"
+  // "Snack 1 - Frutta Jolly Mattina" → "Frutta Jolly"
+  // "Frutta Jolly Mattina" → "Frutta Jolly"
+  return name
+    .replace(/snack\s*1\s*[-­]\s*/i, '')
+    .replace(/\bmattina\b/i, '')
+    .replace(/\s+/g, ' ')
+    .trim() || name;
+}
+
+function extractAllergens(text) {
   const found = [];
-  ALLERGENS_LIST.forEach(a=>{
-    if(new RegExp('\\b'+a+'\\b','i').test(text)) found.push(a);
+  // Ordina per lunghezza decrescente per matchare "frutta a guscio" prima di "frutta"
+  const sorted = [...ALLERGENS_LIST].sort((a,b) => b.length - a.length);
+  sorted.forEach(a => {
+    const re = new RegExp(a.replace(/\s+/g,'\\s+'), 'i');
+    if (re.test(text) && !found.includes(a)) found.push(a);
   });
   return found;
 }
 
-function extractFoodTokens(text){
-  // Split on allergen blocks (comma-separated lowercase words) and line breaks
-  // Allergen blocks look like: "glutine,soia,latte,uova"
-  const withoutAllergens = text.replace(/\b(glutine|soia|latte|uova|uovo|pesce|senape|sesamo|lupino|molluschi|crostacei|frutta a guscio|arachidi|sedano|solfiti|anidride solforosa)([,\s]*(glutine|soia|latte|uova|uovo|pesce|senape|sesamo|lupino|molluschi|crostacei|frutta a guscio|arachidi|sedano|solfiti|anidride solforosa))*[,\s]*/gi, '|');
-
-  const tokens = withoutAllergens.split(/[|\n]+/).map(x=>x.trim()).filter(x=>x.length>3);
-  return tokens;
-}
-
-function cleanFoodName(s){
+function capitalizeFood(s) {
   return s
-    .replace(/\b(glutine|soia|latte|uova|uovo|pesce|senape|sesamo|lupino|molluschi|crostacei|frutta a guscio|arachidi|sedano|solfiti)[,\s]*/gi,'')
-    .replace(/\s+/g,' ')
-    .replace(/[*./\\]+$/,'')
-    .trim();
+    .toLowerCase()
+    .replace(/(?:^|\s)\S/g, c => c.toUpperCase())
+    .replace(/\b(Al|Di|Con|E|A|Da|In|Su|Per|Tra|Fra|Del|Della|Dello|Dei|Degli|Delle|Il|La|Lo|Le|Gli|I)\b/g,
+      w => w.toLowerCase());
 }
 
-function parseFallback(text, year, month){
-  // Very basic fallback: just creates a note that manual entry is needed
-  return {};
+function buildDateStr(year, month, day) {
+  if (day < 1 || day > 31) return null;
+  try {
+    const d = new Date(year, month - 1, day);
+    if (d.getMonth() !== month - 1) return null;
+    return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  } catch(e) { return null; }
 }
 
 function buildPreview(parsed){
