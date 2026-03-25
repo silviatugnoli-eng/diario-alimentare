@@ -221,6 +221,30 @@ body{
 }
 .food-del:hover{color:var(--red)}
 
+
+/* ===== INLINE SYMPTOMS (after meal) ===== */
+.sym-inline-block{
+  border-top:1.5px dashed rgba(0,0,0,.08);
+  padding:10px 12px 12px;
+  background:rgba(255,240,245,.5);
+}
+.sym-inline-head{
+  font-family:'Patrick Hand',cursive;font-size:.8rem;color:var(--ink-light);
+  margin-bottom:8px;letter-spacing:.03em;
+}
+.sym-inline-grid{display:flex;flex-wrap:wrap;gap:6px}
+.sym-chip{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 11px 5px 8px;border-radius:20px;
+  border:2px solid rgba(0,0,0,.09);background:white;
+  cursor:pointer;transition:all .15s;
+  font-family:'Patrick Hand',cursive;font-size:.82rem;color:var(--ink);
+  box-shadow:1px 1px 0 rgba(0,0,0,.05);
+}
+.sym-chip:hover{transform:translateY(-1px);box-shadow:1px 3px 0 rgba(0,0,0,.08)}
+.sym-chip.active{border-color:var(--red);background:#FFF0F0;color:#A01060;font-weight:700;box-shadow:0 0 0 2px rgba(244,107,107,.2)}
+.sym-chip-emoji{font-size:1rem}
+
 /* ===== SYMPTOMS ===== */
 .symptoms-block{
   margin:0 16px 14px;border:2px solid #F8BBD9;border-radius:14px;
@@ -1110,8 +1134,14 @@ function saveState(){
 
 function getDayState(dateStr){
   if(!appState.days[dateStr])
-    appState.days[dateStr] = { eaten:{}, symptoms:{}, notes:'' };
-  return appState.days[dateStr];
+    appState.days[dateStr] = { eaten:{}, symptoms:{pranzo:{},merenda:{},cena:{}}, notes:'' };
+  const ds = appState.days[dateStr];
+  // Migrate old flat symptoms -> pranzo slot
+  if(ds.symptoms && !ds.symptoms.pranzo){
+    const old = ds.symptoms;
+    ds.symptoms = { pranzo: old, merenda: {}, cena: {} };
+  }
+  return ds;
 }
 
 function getMonthMenu(ym){ // ym = 'YYYY-MM'
@@ -1190,7 +1220,7 @@ function renderCalendar(){
     const total = allFoods.length;
     const eaten = allFoods.filter(k=>ds.eaten[k]==='eaten').length;
     const pct = total>0 ? (eaten/total)*100 : 0;
-    const activeSyms = SYMPTOMS.filter(s=>ds.symptoms[s.id]);
+    const activeSyms = SYMPTOMS.filter(s=>hasSymptom(ds,s.id));
 
     // weekday for color (1=mon...5=fri,6=sat,0=sun)
     const wdMon = wd===0?0:wd; // keep as is for data-wd
@@ -1376,26 +1406,28 @@ function renderDayDetail(){
           <input class="manual-input" id="manualIn-${mc.key}" placeholder="Aggiungi alimento..." onkeydown="if(event.key==='Enter')addManualFood('${selectedDate}','${mc.key}')">
           <button class="btn-add-food" onclick="addManualFood('${selectedDate}','${mc.key}')">+ Aggiungi</button>
         </div>
-      </div>
-    </div>`;
+      </div>`;
+
+    // Inline symptoms after pranzo, merenda, cena
+    if(['pranzo','merenda','cena'].includes(mc.key)){
+      const moment = mc.key;
+      const symLabels = {pranzo:'Dopo il pranzo', merenda:'Dopo la merenda', cena:'Dopo cena'};
+      const momentSyms = (ds.symptoms && ds.symptoms[moment]) || {};
+      html += `<div class="sym-inline-block">
+        <div class="sym-inline-head">💊 ${symLabels[moment]} — come ti sei sentito/a?</div>
+        <div class="sym-inline-grid">`;
+      SYMPTOMS.forEach(sym => {
+        const active = momentSyms[sym.id] ? 'active' : '';
+        html += `<div class="sym-chip ${active}" onclick="toggleSymptom('${selectedDate}','${moment}','${sym.id}')">
+          <span class="sym-chip-emoji">${sym.emoji}</span>${sym.label}</div>`;
+      });
+      html += `</div></div>`;
+    }
+
+    html += `</div>`;
   });
 
   html += `</div>`; // meals-wrap
-
-  // Symptoms
-  html += `
-    <div class="symptoms-block">
-      <div class="sym-head">💊 Come ti sei sentito/a oggi?</div>
-      <div class="sym-grid">`;
-  SYMPTOMS.forEach(sym=>{
-    const active = ds.symptoms[sym.id]?'active':'';
-    html += `
-      <div class="sym-card ${active}" onclick="toggleSymptom('${selectedDate}','${sym.id}')">
-        <div class="sym-emoji">${sym.emoji}</div>
-        <div class="sym-label">${sym.label}</div>
-      </div>`;
-  });
-  html += `</div></div>`;
 
   // Notes
   html += `
@@ -1436,9 +1468,10 @@ function toggleEaten(dateStr, key){
   renderDayDetail();
 }
 
-function toggleSymptom(dateStr, symId){
+function toggleSymptom(dateStr, moment, symId){
   const ds = getDayState(dateStr);
-  ds.symptoms[symId] = !ds.symptoms[symId];
+  if(!ds.symptoms[moment]) ds.symptoms[moment] = {};
+  ds.symptoms[moment][symId] = !ds.symptoms[moment][symId];
   saveState();
   renderCalendar();
   renderDayDetail();
@@ -1997,7 +2030,7 @@ function downloadCSV(){
     const dayMenu = menu&&menu[dateStr];
     const ds = getDayState(dateStr);
 
-    const activeSymptoms = SYMPTOMS.filter(s=>ds.symptoms[s.id]).map(s=>s.label).join('; ');
+    const activeSymptoms = SYMPTOMS.filter(s=>hasSymptom(ds,s.id)).map(s=>s.label).join('; ');
 
     MEAL_CONFIG.forEach(mc=>{
       const schoolItems = dayMenu ? (dayMenu[mc.key]||[]) : [];
@@ -2077,9 +2110,9 @@ function renderAnalysis(){
     const ds = appState.days[dateStr];
     if(!ds || !ds.symptoms) return false;
     if(activeSymFilter === 'all'){
-      return SYMPTOMS.some(s => ds.symptoms[s.id]);
+      return SYMPTOMS.some(s => hasSymptom(ds,s.id));
     } else {
-      return !!ds.symptoms[activeSymFilter];
+      return hasSymptom(ds,activeSymFilter);
     }
   });
 
@@ -2105,7 +2138,7 @@ function renderAnalysis(){
   allDayKeys.forEach(dateStr => {
     const ds = appState.days[dateStr];
     if(!ds) return;
-    SYMPTOMS.forEach(s => { if(ds.symptoms && ds.symptoms[s.id]) symCounts[s.id]++; });
+    SYMPTOMS.forEach(s => { if(hasSymptom(ds,s.id)) symCounts[s.id]++; });
   });
   const worstSym = SYMPTOMS.reduce((a,b) => symCounts[a.id]>=symCounts[b.id]?a:b);
 
@@ -2117,8 +2150,8 @@ function renderAnalysis(){
     const ds = appState.days[dateStr];
     if(!ds) return;
     const hasTargetSym = activeSymFilter==='all'
-      ? SYMPTOMS.some(s => ds.symptoms && ds.symptoms[s.id])
-      : (ds.symptoms && ds.symptoms[activeSymFilter]);
+      ? SYMPTOMS.some(s => hasSymptom(ds,s.id))
+      : (hasSymptom(ds,activeSymFilter));
 
     const eatenFoods = getEatenFoodsForDay(dateStr);
     eatenFoods.forEach(foodName => {
@@ -2127,7 +2160,7 @@ function renderAnalysis(){
       if(hasTargetSym){
         foodSymMap[foodName].symDays++;
         SYMPTOMS.forEach(s => {
-          if(ds.symptoms && ds.symptoms[s.id]){
+          if(hasSymptom(ds,s.id)){
             foodSymMap[foodName].symptoms[s.id] = (foodSymMap[foodName].symptoms[s.id]||0)+1;
           }
         });
@@ -2151,8 +2184,8 @@ function renderAnalysis(){
     const ds = appState.days[dateStr];
     if(!ds) return;
     const hasTargetSym = activeSymFilter==='all'
-      ? SYMPTOMS.some(s => ds.symptoms && ds.symptoms[s.id])
-      : (ds.symptoms && ds.symptoms[activeSymFilter]);
+      ? SYMPTOMS.some(s => hasSymptom(ds,s.id))
+      : (hasSymptom(ds,activeSymFilter));
 
     const allergens = getAllergensEatenForDay(dateStr);
     allergens.forEach(a => {
@@ -2278,7 +2311,7 @@ function renderAnalysis(){
       const dayName  = dayNames[dateObj.getDay()];
       const dayNum   = dateObj.getDate();
       const monthShort = MONTH_NAMES_IT[dateObj.getMonth()].slice(0,3);
-      const activeSyms = SYMPTOMS.filter(s => ds.symptoms && ds.symptoms[s.id]);
+      const activeSyms = SYMPTOMS.filter(s => hasSymptom(ds,s.id));
       const eatenFoods = getEatenFoodsForDay(dateStr).slice(0,6);
 
       html += `
