@@ -2,2521 +2,978 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🍎 Il Mio Diario Alimentare</title>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#3A7D5B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FreshTrack">
+<title>FreshTrack</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
-/* ===== RESET & BASE ===== */
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --cream:#FFF9F0;--paper:#FFFDF7;--ink:#2D1F1F;--ink-light:#7A6060;
-  --col-mon:#FFE8D0;--col-tue:#D0EEFF;--col-wed:#D0FFE8;--col-thu:#EDD0FF;--col-fri:#FFEFD0;
-  --col-sat:#FFD0D0;--col-sun:#FFD0D0;
-  --green:#4CBB7A;--red:#F46B6B;--orange:#FF9F43;
-  --pink:#FF9EBB;--mint:#5EC9A0;--sky:#5BA8F5;--lav:#9B7FE8;
-  --shadow:rgba(45,31,31,0.10);
+:root {
+  --bg: #F7F4EF;
+  --surface: #FFFFFF;
+  --surface2: #F0EDE7;
+  --text: #1C1A16;
+  --text2: #6B6760;
+  --text3: #A8A49E;
+  --border: #E2DDD6;
+  --green: #3A7D5B;
+  --green-bg: #EBF5EF;
+  --green-text: #2A5E43;
+  --amber: #B87316;
+  --amber-bg: #FDF3E2;
+  --amber-text: #8A5510;
+  --red: #C0392B;
+  --red-bg: #FDECEA;
+  --red-text: #8B1A10;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
-body{
-  background:#E8D5C4;
-  background-image:radial-gradient(circle at 15% 15%,#F5C09A 0%,transparent 55%),
-                   radial-gradient(circle at 85% 85%,#E8A07C 0%,transparent 55%);
-  font-family:'Nunito',sans-serif;min-height:100vh;padding:16px;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* PROFILE SCREEN */
+#profile-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.profile-box {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+  padding: 36px 32px; width: 100%; max-width: 420px; box-shadow: 0 4px 32px rgba(0,0,0,.07);
+}
+.profile-logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; text-align: center; margin-bottom: 4px; }
+.profile-logo em { color: var(--green); font-style: normal; }
+.profile-subtitle { text-align: center; font-size: 14px; color: var(--text3); margin-bottom: 28px; }
+.profile-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; min-height: 10px; }
+.profile-empty { text-align: center; color: var(--text3); font-size: 14px; padding: 8px 0; }
+.profile-item {
+  display: flex; align-items: center; gap: 14px; padding: 13px 16px;
+  border-radius: var(--radius); border: 1.5px solid var(--border);
+  background: var(--surface); cursor: pointer; transition: all .15s;
+  font-family: inherit; text-align: left; width: 100%;
+}
+.profile-item:hover { border-color: var(--green); background: var(--green-bg); }
+.profile-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 600; font-family: 'Playfair Display', serif; flex-shrink: 0;
+}
+.profile-item-info { flex: 1; min-width: 0; }
+.profile-item-name { font-size: 15px; font-weight: 500; color: var(--text); }
+.profile-item-count { font-size: 12px; color: var(--text3); margin-top: 1px; }
+.profile-del {
+  background: none; border: none; cursor: pointer; color: var(--text3);
+  font-size: 15px; padding: 6px; border-radius: 6px; line-height: 1;
+  transition: all .15s; flex-shrink: 0;
+}
+.profile-del:hover { background: var(--red-bg); color: var(--red-text); }
+.divider-row { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text3); margin-bottom: 16px; }
+.divider-row::before, .divider-row::after { content:''; flex:1; height:1px; background: var(--border); }
+.new-profile-row { display: flex; gap: 8px; }
+.new-profile-row input { flex: 1; }
+
+/* Avatar colors */
+.av-0 { background:#EBF5EF; color:#2A5E43; }
+.av-1 { background:#EEF2FF; color:#3730a3; }
+.av-2 { background:#FDF3E2; color:#8A5510; }
+.av-3 { background:#FDECEA; color:#8B1A10; }
+.av-4 { background:#F0F9FF; color:#0369a1; }
+.av-5 { background:#FDF4FF; color:#7e22ce; }
+.av-6 { background:#F0FDF4; color:#166534; }
+.av-7 { background:#FFF7ED; color:#9a3412; }
+
+/* APP */
+#app-screen { display: none; }
+
+header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 20px; height: 62px; display: flex; align-items: center;
+  justify-content: space-between; position: sticky; top: 0; z-index: 200;
+}
+.logo { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+.logo em { color: var(--green); font-style: normal; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+
+.profile-pill {
+  display: flex; align-items: center; gap: 7px; padding: 5px 10px 5px 6px;
+  border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface);
+  cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text); transition: all .15s;
+}
+.profile-pill:hover { border-color: var(--green); background: var(--green-bg); }
+.mini-av {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; flex-shrink: 0;
 }
 
-/* ===== TOPBAR COVER ===== */
-.app-cover{
-  max-width:960px;margin:0 auto 18px;
-  background:linear-gradient(135deg,#FF7A5C,#FF5252);
-  border-radius:18px;padding:22px 30px;
-  box-shadow:5px 5px 0 #C0392B,0 8px 28px rgba(0,0,0,.18);
-  display:flex;align-items:center;gap:18px;position:relative;overflow:hidden;
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+  border-radius: var(--radius-sm); font-family: inherit; font-size: 14px;
+  font-weight: 500; cursor: pointer; border: 1.5px solid transparent; transition: all .15s;
 }
-.cover-spiral{
-  position:absolute;left:0;top:0;bottom:0;width:44px;
-  background:linear-gradient(to right,rgba(0,0,0,.12),transparent);
-}
-.cover-rings{position:absolute;left:8px;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:12px 0;gap:0}
-.c-ring{width:22px;height:22px;border:3.5px solid rgba(255,255,255,.5);border-radius:50%;background:rgba(255,255,255,.2)}
-.cover-icon{font-size:3rem;filter:drop-shadow(1px 2px 4px rgba(0,0,0,.2));padding-left:30px}
-.cover-text .title{font-family:'Caveat',cursive;font-size:2.4rem;font-weight:700;color:#fff;text-shadow:1px 2px 4px rgba(0,0,0,.2)}
-.cover-text .subtitle{font-family:'Caveat',cursive;font-size:1.1rem;color:rgba(255,255,255,.85)}
+.btn-primary { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-primary:hover { background: var(--green-text); border-color: var(--green-text); }
+.btn-outline { background: transparent; color: var(--text); border-color: var(--border); }
+.btn-outline:hover { background: var(--surface2); }
+.btn-ghost { background: transparent; color: var(--text2); border-color: transparent; padding: 8px 10px; }
+.btn-ghost:hover { background: var(--surface2); color: var(--text); }
+.btn-danger { background: var(--red-bg); color: var(--red-text); border-color: transparent; }
+.btn-danger:hover { background: #fbd5d2; }
+.btn-sm { padding: 5px 10px; font-size: 13px; border-radius: 6px; }
+.btn-icon { width: 36px; height: 36px; padding: 0; justify-content: center; border-radius: var(--radius-sm); }
+.bell-active { color: var(--green) !important; }
 
-/* ===== MAIN NOTEBOOK ===== */
-.notebook{
-  max-width:960px;margin:0 auto;
-  background:var(--paper);
-  border-radius:4px 18px 18px 4px;
-  box-shadow:-5px 0 0 #DDD0B0,5px 5px 0 #C8B090,0 8px 36px rgba(0,0,0,.14);
-  position:relative;overflow:hidden;
-}
-.nb-spine{position:absolute;left:0;top:0;bottom:0;width:48px;background:linear-gradient(to right,#D8C8A0,#ECE0C4);z-index:5}
-.nb-rings{position:absolute;left:4px;top:0;bottom:0;width:48px;display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:16px 0;z-index:10}
-.nb-ring{width:26px;height:26px;border:4px solid #aaa;border-radius:50%;background:linear-gradient(135deg,#ccc,#888);box-shadow:inset 0 1px 3px rgba(0,0,0,.3),0 1px 2px rgba(255,255,255,.4)}
-.nb-content{
-  margin-left:56px;padding:24px 28px 36px;position:relative;
-  background-image:repeating-linear-gradient(to bottom,transparent 0px,transparent 31px,rgba(100,149,237,.13) 31px,rgba(100,149,237,.13) 32px);
-  background-size:100% 32px;
-}
-.nb-content::before{content:'';position:absolute;left:32px;top:0;bottom:0;width:2px;background:rgba(255,90,90,.2)}
+/* LAYOUT */
+.main { max-width: 960px; margin: 0 auto; padding: 28px 24px; }
+.stats-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 28px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+.stat-card .label { font-size: 12px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; }
+.stat-card .value { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 600; line-height: 1; }
+.stat-card.red .value { color: var(--red); }
+.stat-card.amber .value { color: var(--amber); }
+.stat-card.green .value { color: var(--green); }
 
-/* ===== MONTH NAVIGATION ===== */
-.month-nav{
-  display:flex;align-items:center;gap:12px;margin-bottom:20px;
-  background:rgba(255,255,255,.7);border-radius:14px;padding:12px 16px;
-  border:2px dashed rgba(0,0,0,.1);flex-wrap:wrap;
+.toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+.search-wrap { position: relative; flex: 1; min-width: 180px; }
+.search-wrap input {
+  width: 100%; padding: 9px 14px 9px 38px; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); font-family: inherit; font-size: 14px;
+  background: var(--surface); color: var(--text); outline: none; transition: border .15s;
 }
-.month-nav-arrow{
-  font-size:1.4rem;cursor:pointer;background:none;border:none;
-  transition:transform .15s;line-height:1;padding:4px;
+.search-wrap input:focus { border-color: var(--green); }
+.search-wrap .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 16px; pointer-events: none; }
+.filter-tabs { display: flex; gap: 4px; background: var(--surface2); border-radius: var(--radius-sm); padding: 4px; }
+.filter-tab {
+  padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500;
+  cursor: pointer; border: none; background: transparent; color: var(--text2);
+  transition: all .15s; font-family: inherit;
 }
-.month-nav-arrow:hover{transform:scale(1.3)}
-.month-label{font-family:'Caveat',cursive;font-size:1.8rem;font-weight:700;color:var(--ink);flex:1;text-align:center}
-.btn-upload-pdf{
-  font-family:'Caveat',cursive;font-size:1rem;font-weight:700;
-  padding:8px 18px;background:linear-gradient(135deg,#FF9F43,#FF7A5C);
-  border:2.5px solid #C0392B;border-radius:24px;color:#fff;cursor:pointer;
-  box-shadow:2px 2px 0 #C0392B;transition:all .15s;white-space:nowrap;
-}
-.btn-upload-pdf:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #C0392B}
-.btn-upload-pdf:active{transform:translate(1px,1px);box-shadow:1px 1px 0 #C0392B}
-#pdfInput{display:none}
+.filter-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
 
-/* PDF status */
-.pdf-status{
-  font-family:'Patrick Hand',cursive;font-size:.85rem;
-  padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;
+.section-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; margin-bottom: 12px; color: var(--text2); }
+.products-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+.product-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px 20px; display: flex; align-items: center; gap: 16px;
+  transition: box-shadow .15s; animation: fadeIn .2s ease;
 }
-.pdf-status.none{background:#F0F0F0;color:#999;border:1.5px dashed #ccc}
-.pdf-status.loading{background:#FFF3CD;color:#856404;border:1.5px solid #FFD700;animation:pulse 1s infinite}
-.pdf-status.ok{background:#D4EDDA;color:#155724;border:1.5px solid #5BCB8A}
-.pdf-status.err{background:#F8D7DA;color:#721C24;border:1.5px solid #F46B6B}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.product-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+.product-card .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-green { background: var(--green); }
+.dot-amber { background: var(--amber); }
+.dot-red   { background: var(--red); }
+.dot-gray  { background: var(--text3); }
+.product-info { flex: 1; min-width: 0; }
+.product-name { font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.product-meta { font-size: 13px; color: var(--text3); margin-top: 2px; }
+.product-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+.badge-green { background: var(--green-bg); color: var(--green-text); }
+.badge-amber { background: var(--amber-bg); color: var(--amber-text); }
+.badge-red   { background: var(--red-bg);   color: var(--red-text); }
+.badge-gray  { background: var(--surface2); color: var(--text3); }
+.product-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.cat-tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; background: var(--surface2); color: var(--text3); }
+.empty-state { text-align: center; padding: 56px 20px; color: var(--text3); }
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 15px; }
+.empty-state small { font-size: 13px; display: block; margin-top: 6px; }
 
-/* ===== CALENDAR GRID ===== */
-.cal-header{
-  display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(28,26,22,.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500; padding: 20px; animation: fadeOverlay .15s ease;
 }
-.cal-header-cell{
-  font-family:'Caveat',cursive;font-size:.95rem;font-weight:700;
-  text-align:center;padding:6px 2px;border-radius:8px;
+.modal-overlay.hidden { display: none; }
+@keyframes fadeOverlay { from{opacity:0} to{opacity:1} }
+.modal {
+  background: var(--surface); border-radius: 18px; width: 100%; max-width: 480px;
+  padding: 28px; box-shadow: 0 8px 40px rgba(0,0,0,.18);
+  animation: slideUp .18s ease; max-height: 90vh; overflow-y: auto;
 }
-.ch-mon{color:#E67E22}.ch-tue{color:#2980B9}.ch-wed{color:#27AE60}
-.ch-thu{color:#8E44AD}.ch-fri{color:#C0392B}.ch-sat{color:#E74C3C}.ch-sun{color:#E74C3C}
+@keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; }
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+.form-input {
+  width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); font-family: inherit; font-size: 15px;
+  color: var(--text); background: var(--surface); outline: none; transition: border .15s;
+}
+.form-input:focus { border-color: var(--green); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
 
-.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.cal-empty{border-radius:10px;min-height:72px}
-.cal-day{
-  border-radius:10px;min-height:72px;cursor:pointer;
-  border:2px solid rgba(0,0,0,.08);padding:6px 6px 4px;
-  display:flex;flex-direction:column;gap:2px;
-  transition:all .18s;position:relative;background:white;
-  box-shadow:2px 2px 0 rgba(0,0,0,.05);
+/* Quick date chips */
+.date-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.date-chip {
+  padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  background: var(--surface2); color: var(--text2); border: none; cursor: pointer;
+  font-family: inherit; transition: all .15s;
 }
-.cal-day:hover{transform:translateY(-2px);box-shadow:3px 5px 0 rgba(0,0,0,.08);z-index:2}
-.cal-day.today{border-color:var(--orange)!important;box-shadow:0 0 0 3px rgba(255,159,67,.3),2px 2px 0 var(--orange)}
-.cal-day.selected{border-color:var(--sky)!important;box-shadow:0 0 0 3px rgba(91,168,245,.35),2px 2px 0 var(--sky);transform:translateY(-3px)}
-.cal-day.school{border-color:rgba(76,187,122,.4)}
-.cal-day.weekend{background:#FFF5F5}
-.cal-day.future{opacity:.55}
+.date-chip:hover { background: var(--green-bg); color: var(--green-text); }
 
-.day-num{font-family:'Caveat',cursive;font-size:1.35rem;font-weight:700;line-height:1}
-.day-school-dot{width:7px;height:7px;border-radius:50%;background:var(--green);margin-top:2px;align-self:flex-start}
-.day-eaten-bar{
-  margin-top:auto;height:5px;border-radius:3px;
-  background:linear-gradient(90deg,var(--green),#7EE8A2);
+/* OCR MODAL */
+.ocr-drop-area {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 32px 20px; text-align: center; cursor: pointer;
+  transition: all .2s; position: relative; background: var(--bg);
 }
-.day-symptom-row{display:flex;gap:1px;flex-wrap:wrap;margin-top:1px}
-.day-sym-dot{font-size:.7rem;line-height:1}
+.ocr-drop-area:hover, .ocr-drop-area.drag-over { border-color: var(--green); background: var(--green-bg); }
+.ocr-drop-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.ocr-drop-icon { font-size: 36px; margin-bottom: 10px; }
+.ocr-drop-text { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+.ocr-drop-sub { font-size: 13px; color: var(--text3); }
+.ocr-preview-wrap { border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 14px; }
+.ocr-preview-wrap img { width: 100%; display: block; max-height: 240px; object-fit: contain; background: #000; }
+.ocr-status { font-size: 13px; color: var(--text2); min-height: 20px; margin-bottom: 8px; }
+.ocr-progress-bar-wrap { background: var(--surface2); border-radius: 20px; height: 6px; overflow: hidden; margin-bottom: 12px; }
+.ocr-progress-bar { height: 100%; background: var(--green); border-radius: 20px; transition: width .3s; }
+.ocr-results { display: flex; flex-direction: column; gap: 8px; }
+.ocr-result-chip {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  cursor: pointer; transition: all .15s; font-family: inherit;
+  background: var(--surface); width: 100%; text-align: left;
+}
+.ocr-result-chip:hover { border-color: var(--green); background: var(--green-bg); }
+.chip-date { font-size: 16px; font-weight: 500; }
+.chip-fmt  { font-size: 12px; color: var(--text3); }
 
-/* Day color by weekday */
-.cal-day[data-wd="1"]{background:var(--col-mon)}
-.cal-day[data-wd="2"]{background:var(--col-tue)}
-.cal-day[data-wd="3"]{background:var(--col-wed)}
-.cal-day[data-wd="4"]{background:var(--col-thu)}
-.cal-day[data-wd="5"]{background:var(--col-fri)}
-.cal-day[data-wd="6"]{background:var(--col-sat)}
-.cal-day[data-wd="0"]{background:var(--col-sun)}
+/* NOTIFICATION BANNER */
+.notif-banner {
+  position: fixed; bottom: calc(24px + var(--safe-bottom)); right: 24px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 18px; box-shadow: 0 4px 20px rgba(0,0,0,.12); max-width: 320px;
+  z-index: 300; animation: slideIn .2s ease; display: flex; gap: 12px; align-items: flex-start;
+}
+.notif-banner.hidden { display: none; }
+@keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:none} }
+.notif-banner .notif-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.notif-banner .notif-text { flex: 1; }
+.notif-banner .notif-title { font-weight: 500; font-size: 14px; margin-bottom: 2px; }
+.notif-banner .notif-msg { font-size: 13px; color: var(--text2); }
+.notif-close { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 16px; padding: 0; line-height: 1; }
 
-/* ===== DAY DETAIL PANEL ===== */
-.day-panel{
-  margin-top:20px;background:white;border-radius:16px;
-  border:2px solid rgba(0,0,0,.08);box-shadow:4px 4px 0 rgba(0,0,0,.06);
-  overflow:hidden;animation:slideIn .25s ease;
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .stats-bar { grid-template-columns: repeat(2,1fr); }
+  .form-row  { grid-template-columns: 1fr; }
+  header { padding: 0 16px; }
+  .main  { padding: 20px 16px; }
+  #header-profile-name { display: none; }
+  .btn-outline#ocr-btn span { display: none; }
 }
-@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
-.day-panel-header{
-  display:flex;align-items:center;gap:12px;padding:14px 20px;
-  background:linear-gradient(135deg,#FFF3E0,#FFE0C0);
-  border-bottom:2px dashed rgba(0,0,0,.1);
-}
-.dph-date{font-family:'Caveat',cursive;font-size:1.9rem;font-weight:700;color:var(--ink)}
-.dph-badge{
-  font-family:'Patrick Hand',cursive;font-size:.8rem;padding:4px 12px;
-  border-radius:20px;border:2px solid;margin-left:auto;
-}
-.dph-badge.school{background:#D4EDDA;border-color:#5BCB8A;color:#155724}
-.dph-badge.weekend{background:#FFD0D0;border-color:#F46B6B;color:#721C24}
-
-.progress-row{display:flex;align-items:center;gap:10px;padding:10px 20px;background:rgba(255,255,255,.6);border-bottom:1px solid rgba(0,0,0,.06)}
-.prog-label{font-family:'Caveat',cursive;font-size:.95rem;color:var(--ink-light);white-space:nowrap}
-.prog-bar-out{flex:1;height:14px;background:#EBEBEB;border-radius:20px;overflow:hidden;border:1.5px solid rgba(0,0,0,.08)}
-.prog-bar-in{height:100%;background:linear-gradient(90deg,#4CBB7A,#7EE8A2);border-radius:20px;transition:width .4s ease}
-.prog-pct{font-family:'Caveat',cursive;font-weight:700;font-size:1rem;color:var(--green);white-space:nowrap}
-
-/* ===== MEAL SECTIONS ===== */
-.meals-wrap{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
-.meal-block{border:2px solid rgba(0,0,0,.07);border-radius:14px;overflow:hidden;box-shadow:2px 2px 0 rgba(0,0,0,.04)}
-.meal-head{
-  display:flex;align-items:center;gap:8px;padding:9px 14px;
-  font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;
-  border-bottom:1.5px dashed rgba(0,0,0,.1);cursor:pointer;user-select:none;
-}
-.meal-head .meal-arrow{margin-left:auto;font-size:.8rem;transition:transform .2s}
-.meal-head.open .meal-arrow{transform:rotate(180deg)}
-.m-col{background:#FFF7E6}.m-spu{background:#E6FFF2}.m-pra{background:#E6F4FF}.m-mer{background:#FFE6F2}.m-cen{background:#F0E6FF}
-
-.meal-items-wrap{padding:6px 10px}
-
-/* Weekend: manual add */
-.manual-add-area{padding:8px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.manual-input{
-  font-family:'Patrick Hand',cursive;font-size:.95rem;flex:1;min-width:120px;
-  border:2px solid #ddd;border-radius:10px;padding:7px 12px;outline:none;
-  background:white;transition:border-color .2s;
-}
-.manual-input:focus{border-color:var(--sky)}
-.btn-add-food{
-  font-family:'Caveat',cursive;font-size:1rem;font-weight:700;padding:7px 16px;
-  background:var(--sky);border:2px solid #3A88D5;border-radius:10px;color:#fff;
-  cursor:pointer;box-shadow:2px 2px 0 #3A88D5;transition:all .15s;white-space:nowrap;
-}
-.btn-add-food:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #3A88D5}
-
-/* Food item */
-.food-row{
-  display:flex;align-items:flex-start;gap:8px;padding:7px 6px;
-  border-bottom:1px solid rgba(0,0,0,.05);border-radius:8px;
-  transition:background .15s;cursor:pointer;
-}
-.food-row:last-child{border-bottom:none}
-.food-row:hover{background:rgba(255,255,0,.07)}
-.food-row.eaten{background:rgba(76,187,122,.1)}
-.food-row.not-eaten{background:rgba(244,107,107,.07)}
-.food-cb{
-  flex-shrink:0;width:26px;height:26px;border:2.5px solid #ccc;border-radius:7px;
-  display:flex;align-items:center;justify-content:center;font-size:1rem;
-  transition:all .18s;background:white;user-select:none;
-}
-.food-cb.eaten{border-color:var(--green);background:var(--green);color:#fff;box-shadow:0 0 0 3px rgba(76,187,122,.2)}
-.food-cb.not-eaten{border-color:var(--red);background:var(--red);color:#fff;box-shadow:0 0 0 3px rgba(244,107,107,.2)}
-.food-text{flex:1}
-.food-name{font-family:'Patrick Hand',cursive;font-size:.95rem;color:var(--ink);font-weight:600;line-height:1.3}
-.food-allerg{display:flex;flex-wrap:wrap;gap:2px;margin-top:2px}
-.allerg-tag{font-size:.6rem;background:#FFF3E0;border:1px solid #FFB74D;border-radius:8px;padding:1px 5px;color:#E65100}
-.food-del{
-  flex-shrink:0;font-size:.85rem;color:#ddd;cursor:pointer;padding:2px 4px;
-  transition:color .15s;align-self:center;
-}
-.food-del:hover{color:var(--red)}
-
-
-/* ===== INLINE SYMPTOMS (after meal) ===== */
-.sym-inline-block{
-  border-top:1.5px dashed rgba(0,0,0,.08);
-  padding:10px 12px 12px;
-  background:rgba(255,240,245,.5);
-}
-.sym-inline-head{
-  font-family:'Patrick Hand',cursive;font-size:.8rem;color:var(--ink-light);
-  margin-bottom:8px;letter-spacing:.03em;
-}
-.sym-inline-grid{display:flex;flex-wrap:wrap;gap:6px}
-.sym-chip{
-  display:flex;align-items:center;gap:5px;
-  padding:5px 11px 5px 8px;border-radius:20px;
-  border:2px solid rgba(0,0,0,.09);background:white;
-  cursor:pointer;transition:all .15s;
-  font-family:'Patrick Hand',cursive;font-size:.82rem;color:var(--ink);
-  box-shadow:1px 1px 0 rgba(0,0,0,.05);
-}
-.sym-chip:hover{transform:translateY(-1px);box-shadow:1px 3px 0 rgba(0,0,0,.08)}
-.sym-chip.active{border-color:var(--red);background:#FFF0F0;color:#A01060;font-weight:700;box-shadow:0 0 0 2px rgba(244,107,107,.2)}
-.sym-chip-emoji{font-size:1rem}
-
-/* ===== SYMPTOMS ===== */
-.symptoms-block{
-  margin:0 16px 14px;border:2px solid #F8BBD9;border-radius:14px;
-  overflow:hidden;box-shadow:2px 2px 0 rgba(248,187,217,.4);
-}
-.sym-head{
-  background:linear-gradient(135deg,#FFD6EB,#FFB3C6);padding:10px 14px;
-  display:flex;align-items:center;gap:8px;
-  border-bottom:1.5px dashed #F8BBD9;
-  font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;color:#A01060;
-}
-.sym-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:12px}
-.sym-card{
-  display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;
-  border:2px solid #eee;border-radius:12px;cursor:pointer;
-  transition:all .18s;background:#FAFAFA;user-select:none;text-align:center;
-}
-.sym-card:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,0,0,.1)}
-.sym-card.active{border-color:var(--red);background:#FFF0F0;transform:translateY(-2px);box-shadow:0 0 0 3px rgba(244,107,107,.2)}
-.sym-emoji{font-size:1.7rem}
-.sym-label{font-family:'Patrick Hand',cursive;font-size:.75rem;color:var(--ink);font-weight:600;line-height:1.2}
-.sym-card.active .sym-label{color:#A01060;font-weight:700}
-
-/* ===== NOTES ===== */
-.notes-block{
-  margin:0 16px 16px;border:2px solid #B5D8FF;border-radius:14px;overflow:hidden;
-}
-.notes-head{
-  background:linear-gradient(135deg,#D6EFFF,#B5D8FF);padding:10px 14px;
-  display:flex;align-items:center;gap:8px;border-bottom:1.5px dashed #B5D8FF;
-  font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;color:#1A6FA8;
-}
-.notes-ta{
-  width:100%;padding:12px 14px;border:none;outline:none;resize:none;
-  font-family:'Patrick Hand',cursive;font-size:.95rem;line-height:2rem;
-  background:transparent;color:var(--ink);min-height:70px;
-  background-image:repeating-linear-gradient(to bottom,transparent 0px,transparent 31px,rgba(100,149,237,.1) 31px,rgba(100,149,237,.1) 32px);
-  background-size:100% 32px;
-}
-
-/* ===== NO DAY SELECTED ===== */
-.no-day{
-  text-align:center;padding:36px 20px;
-  font-family:'Caveat',cursive;font-size:1.4rem;color:var(--ink-light);
-}
-.no-day-emoji{font-size:3.5rem;display:block;margin-bottom:10px}
-
-/* ===== BOTTOM BAR ===== */
-.bottom-bar{
-  max-width:960px;margin:16px auto 0;
-  display:flex;gap:10px;flex-wrap:wrap;
-}
-.btn-dl{
-  font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;
-  padding:11px 24px;border-radius:28px;cursor:pointer;color:#fff;
-  display:flex;align-items:center;gap:7px;transition:all .15s;
-}
-.btn-dl.green{background:linear-gradient(135deg,#4CBB7A,#2ECC71);border:2.5px solid #1A7A45;box-shadow:3px 3px 0 #1A7A45}
-.btn-dl.green:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 #1A7A45}
-.btn-dl.blue{background:linear-gradient(135deg,#74B9FF,#0984E3);border:2.5px solid #0652DD;box-shadow:3px 3px 0 #0652DD}
-.btn-dl.blue:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 #0652DD}
-
-/* ===== LEGEND ===== */
-.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:8px 12px;background:rgba(255,255,255,.65);border-radius:10px;border:1.5px dashed #ddd}
-.leg-item{display:flex;align-items:center;gap:5px;font-family:'Patrick Hand',cursive;font-size:.85rem;color:var(--ink-light)}
-.leg-dot{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.75rem}
-
-/* ===== MODAL (PDF parse result) ===== */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
-.modal{background:white;border-radius:18px;padding:28px;max-width:520px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideIn .25s ease}
-.modal h2{font-family:'Caveat',cursive;font-size:1.8rem;color:var(--ink);margin-bottom:8px}
-.modal p{font-family:'Patrick Hand',cursive;font-size:1rem;color:var(--ink-light);margin-bottom:16px;line-height:1.5}
-.modal-btns{display:flex;gap:10px;flex-wrap:wrap}
-.modal-btn{font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;padding:10px 22px;border-radius:24px;cursor:pointer;border:2.5px solid;transition:all .15s}
-.modal-btn.primary{background:var(--green);border-color:#1A7A45;color:#fff;box-shadow:2px 2px 0 #1A7A45}
-.modal-btn.primary:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #1A7A45}
-.modal-btn.secondary{background:#F0F0F0;border-color:#ccc;color:var(--ink)}
-.modal-btn.secondary:hover{background:#E0E0E0}
-.parsed-preview{background:#F9F9F9;border-radius:10px;padding:12px;max-height:200px;overflow-y:auto;font-family:'Patrick Hand',cursive;font-size:.88rem;color:var(--ink-light);border:1.5px solid #eee;margin-bottom:14px}
-.parsed-preview .p-day{font-weight:700;color:var(--ink);margin-top:8px}
-.parsed-preview .p-day:first-child{margin-top:0}
-
-/* ===== ANALYSIS PANEL ===== */
-.analysis-panel{
-  max-width:960px;margin:18px auto 0;
-  background:var(--paper);
-  border-radius:4px 18px 18px 4px;
-  box-shadow:-5px 0 0 #DDD0B0,5px 5px 0 #C8B090,0 8px 36px rgba(0,0,0,.14);
-  position:relative;overflow:hidden;
-  animation:slideIn .3s ease;
-}
-.analysis-panel .nb-spine2{position:absolute;left:0;top:0;bottom:0;width:48px;background:linear-gradient(to right,#C8D8A0,#DCE8C4);z-index:5}
-.analysis-content{
-  margin-left:56px;padding:24px 28px 36px;position:relative;
-  background-image:repeating-linear-gradient(to bottom,transparent 0px,transparent 31px,rgba(100,149,237,.10) 31px,rgba(100,149,237,.10) 32px);
-  background-size:100% 32px;
-}
-.analysis-content::before{content:'';position:absolute;left:32px;top:0;bottom:0;width:2px;background:rgba(100,200,100,.25)}
-
-.analysis-title{
-  font-family:'Caveat',cursive;font-size:2rem;font-weight:700;color:var(--ink);
-  display:flex;align-items:center;gap:10px;margin-bottom:6px;
-}
-.analysis-subtitle{
-  font-family:'Patrick Hand',cursive;font-size:.95rem;color:var(--ink-light);
-  margin-bottom:22px;line-height:1.5;
-}
-.analysis-empty{
-  text-align:center;padding:40px 20px;
-  font-family:'Caveat',cursive;font-size:1.3rem;color:var(--ink-light);
-}
-
-/* Symptom filter tabs */
-.sym-filter-row{
-  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;
-}
-.sym-filter-btn{
-  font-family:'Caveat',cursive;font-size:1rem;font-weight:700;
-  padding:7px 16px;border-radius:24px;border:2px solid #ddd;
-  cursor:pointer;background:white;transition:all .15s;
-  display:flex;align-items:center;gap:5px;
-}
-.sym-filter-btn:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.1)}
-.sym-filter-btn.active{background:#FFF0F0;border-color:var(--red);color:#A01060;box-shadow:0 0 0 3px rgba(244,107,107,.15)}
-.sym-filter-btn.all.active{background:#EEF8FF;border-color:var(--sky);color:#1A6FA8}
-
-/* Stats overview row */
-.stats-row{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;
-  margin-bottom:24px;
-}
-.stat-card{
-  background:white;border:2px solid rgba(0,0,0,.07);border-radius:14px;
-  padding:14px 10px;text-align:center;box-shadow:2px 2px 0 rgba(0,0,0,.05);
-}
-.stat-emoji{font-size:1.8rem;display:block;margin-bottom:4px}
-.stat-num{font-family:'Caveat',cursive;font-size:2rem;font-weight:700;color:var(--ink);line-height:1}
-.stat-label{font-family:'Patrick Hand',cursive;font-size:.78rem;color:var(--ink-light);margin-top:2px}
-.stat-card.alert{border-color:#F8BBD9;background:#FFF5F8}
-.stat-card.alert .stat-num{color:#A01060}
-
-/* Section headers */
-.an-section{margin-bottom:24px}
-.an-section-title{
-  font-family:'Caveat',cursive;font-size:1.35rem;font-weight:700;color:var(--ink);
-  margin-bottom:12px;display:flex;align-items:center;gap:8px;
-  padding-bottom:6px;border-bottom:2px dashed rgba(0,0,0,.1);
-}
-
-/* Food correlation list */
-.food-corr-list{display:flex;flex-direction:column;gap:8px}
-.food-corr-row{
-  background:white;border:2px solid rgba(0,0,0,.07);border-radius:12px;
-  padding:10px 14px;display:flex;align-items:center;gap:12px;
-  box-shadow:2px 2px 0 rgba(0,0,0,.04);transition:all .15s;
-}
-.food-corr-row:hover{transform:translateX(3px);box-shadow:4px 2px 0 rgba(0,0,0,.08)}
-.food-corr-row.high{border-left:4px solid var(--red);background:#FFF8F8}
-.food-corr-row.medium{border-left:4px solid var(--orange);background:#FFFBF5}
-.food-corr-row.low{border-left:4px solid #ccc;background:#FAFAFA}
-.fcr-name{font-family:'Patrick Hand',cursive;font-size:.95rem;font-weight:600;color:var(--ink);flex:1}
-.fcr-syms{display:flex;gap:4px;flex-wrap:wrap}
-.fcr-sym-tag{
-  font-size:.72rem;padding:2px 8px;border-radius:10px;
-  font-family:'Patrick Hand',cursive;font-weight:600;
-  background:#FFF0F0;border:1px solid #F8BBD9;color:#A01060;
-}
-.fcr-count{
-  font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;
-  background:#F0F0F0;border-radius:8px;padding:2px 8px;color:var(--ink-light);
-  white-space:nowrap;min-width:36px;text-align:center;
-}
-.fcr-count.danger{background:#FFE0E0;color:#A01060}
-.risk-bar-wrap{width:80px;height:8px;background:#F0F0F0;border-radius:4px;overflow:hidden;flex-shrink:0}
-.risk-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--orange),var(--red))}
-
-/* Days with symptoms list */
-.day-sym-list{display:flex;flex-direction:column;gap:7px}
-.day-sym-row{
-  background:white;border:2px solid rgba(0,0,0,.07);border-radius:12px;
-  padding:10px 14px;display:flex;align-items:flex-start;gap:12px;
-  box-shadow:2px 2px 0 rgba(0,0,0,.04);cursor:pointer;transition:all .15s;
-}
-.day-sym-row:hover{border-color:var(--sky);transform:translateX(3px)}
-.dsr-date{font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;color:var(--ink);white-space:nowrap;min-width:100px}
-.dsr-syms{display:flex;gap:5px;flex-wrap:wrap;flex:1}
-.dsr-sym-pill{
-  font-size:.78rem;padding:3px 10px;border-radius:10px;
-  font-family:'Patrick Hand',cursive;font-weight:600;
-  background:#FFF0F0;border:1.5px solid #F8BBD9;color:#A01060;
-  display:flex;align-items:center;gap:3px;
-}
-.dsr-foods{font-family:'Patrick Hand',cursive;font-size:.78rem;color:var(--ink-light);margin-top:3px;line-height:1.4}
-
-/* Allergen heatmap */
-.allerg-grid{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;
-}
-.allerg-card{
-  background:white;border:2px solid rgba(0,0,0,.07);border-radius:12px;
-  padding:10px 12px;text-align:center;box-shadow:2px 2px 0 rgba(0,0,0,.04);
-  transition:all .15s;
-}
-.allerg-card:hover{transform:translateY(-2px);box-shadow:2px 4px 0 rgba(0,0,0,.1)}
-.allerg-card.danger{border-color:#F8BBD9;background:#FFF5F8}
-.allerg-card.medium{border-color:#FFD0A0;background:#FFF9F0}
-.allerg-name{font-family:'Patrick Hand',cursive;font-size:.85rem;font-weight:600;color:var(--ink);margin-bottom:4px}
-.allerg-bar-wrap{height:6px;background:#F0F0F0;border-radius:3px;overflow:hidden;margin:4px 0}
-.allerg-bar{height:100%;border-radius:3px}
-.allerg-stat{font-family:'Caveat',cursive;font-size:.9rem;color:var(--ink-light)}
-
-/* No data msg */
-.no-data-msg{
-  font-family:'Patrick Hand',cursive;font-size:.95rem;color:#bbb;
-  text-align:center;padding:20px;font-style:italic;
-}
-
-/* Insight box */
-.insight-box{
-  background:linear-gradient(135deg,#FFF9E6,#FFF3CC);
-  border:2px solid #FFD700;border-radius:14px;
-  padding:14px 18px;margin-bottom:20px;
-  display:flex;gap:12px;align-items:flex-start;
-}
-.insight-icon{font-size:1.8rem;flex-shrink:0}
-.insight-text{font-family:'Patrick Hand',cursive;font-size:.95rem;color:var(--ink);line-height:1.6}
-.insight-text strong{font-weight:700;color:#8B6914}
-
-@media(max-width:600px){
-  .nb-content{padding:12px 12px 24px}
-  .sym-grid{grid-template-columns:repeat(3,1fr)}
-  .cal-day{min-height:56px}
-  .day-num{font-size:1.1rem}
-  .analysis-content{padding:14px 14px 24px}
-  .stats-row{grid-template-columns:repeat(3,1fr)}
-}
-@media print{
-  body{background:white;padding:0}
-  .bottom-bar,.btn-upload-pdf,.month-nav-arrow,.nb-rings,.nb-spine{display:none!important}
-  .nb-content{margin-left:10px!important}
-  .app-cover{break-inside:avoid}
-}
-
-/* ===== LOGIN SCREEN ===== */
-#loginScreen{
-  position:fixed;inset:0;z-index:999;
-  background:#E8D5C4;
-  background-image:radial-gradient(circle at 20% 20%,#F5C09A 0%,transparent 55%),
-                   radial-gradient(circle at 80% 80%,#E8A07C 0%,transparent 55%);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:20px;overflow-y:auto;
-}
-.login-cover{
-  background:linear-gradient(135deg,#FF7A5C,#FF5252);
-  border-radius:18px;padding:20px 32px;margin-bottom:24px;
-  box-shadow:5px 5px 0 #C0392B;text-align:center;
-  max-width:480px;width:100%;
-}
-.login-cover .lc-title{font-family:'Caveat',cursive;font-size:2.2rem;font-weight:700;color:#fff;text-shadow:1px 2px 4px rgba(0,0,0,.2)}
-.login-cover .lc-sub{font-family:'Caveat',cursive;font-size:1.1rem;color:rgba(255,255,255,.85)}
-
-.profiles-wrap{
-  background:var(--paper);border-radius:4px 18px 18px 4px;
-  box-shadow:-5px 0 0 #DDD0B0,5px 5px 0 #C8B090,0 8px 36px rgba(0,0,0,.14);
-  max-width:480px;width:100%;padding:24px 28px;position:relative;
-  background-image:repeating-linear-gradient(to bottom,transparent 0px,transparent 31px,rgba(100,149,237,.10) 31px,rgba(100,149,237,.10) 32px);
-  background-size:100% 32px;
-}
-.profiles-title{font-family:'Caveat',cursive;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:16px;text-align:center}
-.profiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;margin-bottom:16px}
-.profile-card{
-  background:white;border:2.5px solid rgba(0,0,0,.08);border-radius:16px;
-  padding:16px 8px;text-align:center;cursor:pointer;
-  transition:all .18s;box-shadow:2px 2px 0 rgba(0,0,0,.06);
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-}
-.profile-card:hover{transform:translateY(-3px);box-shadow:3px 5px 0 rgba(0,0,0,.1)}
-.profile-card.admin{border-color:#9B7FE8;background:linear-gradient(135deg,#F0EBFF,#E8E0FF)}
-.profile-emoji{font-size:2.4rem}
-.profile-name{font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;color:var(--ink)}
-.profile-pin-dots{display:flex;gap:4px;justify-content:center;margin-top:2px}
-.pin-dot{width:7px;height:7px;border-radius:50%;background:#ddd}
-
-/* PIN entry */
-.pin-screen{display:none;flex-direction:column;align-items:center;gap:16px}
-.pin-screen.active{display:flex}
-.pin-avatar{font-size:3.5rem;margin-bottom:4px}
-.pin-greeting{font-family:'Caveat',cursive;font-size:1.6rem;font-weight:700;color:var(--ink)}
-.pin-subtitle{font-family:'Patrick Hand',cursive;font-size:.95rem;color:var(--ink-light)}
-.pin-dots-row{display:flex;gap:10px;margin:4px 0}
-.pin-dot-big{
-  width:18px;height:18px;border-radius:50%;
-  background:#E0E0E0;border:2px solid #ccc;
-  transition:all .15s;
-}
-.pin-dot-big.filled{background:var(--ink);border-color:var(--ink)}
-.pin-dot-big.error{background:var(--red);border-color:var(--red);animation:shake .3s ease}
-.pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:220px}
-.pin-key{
-  font-family:'Caveat',cursive;font-size:1.6rem;font-weight:700;
-  padding:14px 0;border-radius:14px;border:2.5px solid rgba(0,0,0,.1);
-  background:white;cursor:pointer;transition:all .15s;box-shadow:2px 2px 0 rgba(0,0,0,.08);
-  text-align:center;
-}
-.pin-key:hover{transform:translateY(-2px);box-shadow:2px 4px 0 rgba(0,0,0,.12)}
-.pin-key:active{transform:translateY(1px);box-shadow:0 0 0 rgba(0,0,0,.08)}
-.pin-key.del{background:#FFF0F0;border-color:#F8BBD9;color:var(--red)}
-.pin-key.empty{background:transparent;border:none;cursor:default;box-shadow:none}
-.pin-back-btn{
-  font-family:'Caveat',cursive;font-size:1rem;color:var(--ink-light);
-  background:none;border:none;cursor:pointer;padding:4px 8px;
-  text-decoration:underline;
-}
-.pin-error-msg{
-  font-family:'Patrick Hand',cursive;font-size:.9rem;color:var(--red);
-  animation:fadeIn .2s ease;min-height:20px;text-align:center;
-}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-
-/* Add profile button */
-.btn-add-profile{
-  font-family:'Caveat',cursive;font-size:1rem;font-weight:700;
-  padding:8px 18px;background:white;border:2.5px dashed #ccc;
-  border-radius:24px;color:var(--ink-light);cursor:pointer;
-  transition:all .15s;width:100%;margin-top:4px;
-}
-.btn-add-profile:hover{border-color:var(--sky);color:var(--sky)}
-
-/* Logged in user bar */
-.user-bar{
-  display:flex;align-items:center;gap:10px;
-  background:rgba(255,255,255,.8);border-radius:12px;
-  padding:8px 14px;margin-bottom:14px;
-  border:1.5px solid rgba(0,0,0,.08);
-}
-.user-bar-avatar{font-size:1.4rem}
-.user-bar-name{font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;color:var(--ink);flex:1}
-.btn-logout{
-  font-family:'Caveat',cursive;font-size:.9rem;font-weight:700;
-  padding:5px 12px;background:#FFF0F0;border:2px solid #F8BBD9;
-  border-radius:20px;color:var(--red);cursor:pointer;transition:all .15s;
-}
-.btn-logout:hover{background:#FFE0E0}
-
-/* Admin switcher */
-.admin-user-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
-.admin-user-row{
-  display:flex;align-items:center;gap:10px;padding:10px 14px;
-  background:white;border:2px solid rgba(0,0,0,.07);border-radius:12px;
-  cursor:pointer;transition:all .15s;box-shadow:2px 2px 0 rgba(0,0,0,.04);
-}
-.admin-user-row:hover{border-color:var(--lav);transform:translateX(3px)}
-.admin-user-row.current{border-color:var(--lav);background:#F0EBFF}
-.aur-emoji{font-size:1.5rem}
-.aur-name{font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;color:var(--ink);flex:1}
-.aur-badge{font-family:'Patrick Hand',cursive;font-size:.75rem;padding:2px 8px;border-radius:10px;background:#E8E0FF;color:#6C5CE7}
-
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 </style>
 </head>
 <body>
 
-<!-- COVER -->
-<!-- ===== LOGIN SCREEN ===== -->
-<div id="loginScreen">
-  <div class="login-cover">
-    <div class="lc-title">🍎 Diario Alimentare</div>
-    <div class="lc-sub">Chi sei oggi?</div>
-  </div>
-  <div class="profiles-wrap">
-    <!-- Lista profili -->
-    <div id="profilesView">
-      <div class="profiles-title">Scegli il tuo profilo</div>
-      <div class="profiles-grid" id="profilesGrid"></div>
-      <button class="btn-add-profile" onclick="showAddProfile()">＋ Aggiungi profilo</button>
-    </div>
-    <!-- Inserimento PIN -->
-    <div class="pin-screen" id="pinView">
-      <div class="pin-avatar" id="pinAvatar">😊</div>
-      <div class="pin-greeting" id="pinGreeting">Ciao!</div>
-      <div class="pin-subtitle">Inserisci il tuo PIN</div>
-      <div class="pin-dots-row" id="pinDots">
-        <div class="pin-dot-big" id="pd0"></div>
-        <div class="pin-dot-big" id="pd1"></div>
-        <div class="pin-dot-big" id="pd2"></div>
-        <div class="pin-dot-big" id="pd3"></div>
-      </div>
-      <div class="pin-error-msg" id="pinError"></div>
-      <div class="pin-keypad">
-        <button class="pin-key" onclick="pinKey('1')">1</button>
-        <button class="pin-key" onclick="pinKey('2')">2</button>
-        <button class="pin-key" onclick="pinKey('3')">3</button>
-        <button class="pin-key" onclick="pinKey('4')">4</button>
-        <button class="pin-key" onclick="pinKey('5')">5</button>
-        <button class="pin-key" onclick="pinKey('6')">6</button>
-        <button class="pin-key" onclick="pinKey('7')">7</button>
-        <button class="pin-key" onclick="pinKey('8')">8</button>
-        <button class="pin-key" onclick="pinKey('9')">9</button>
-        <button class="pin-key empty"></button>
-        <button class="pin-key" onclick="pinKey('0')">0</button>
-        <button class="pin-key del" onclick="pinKey('del')">⌫</button>
-      </div>
-      <button class="pin-back-btn" onclick="showProfiles()">← Cambia profilo</button>
-    </div>
-    <!-- Crea nuovo profilo -->
-    <div class="pin-screen" id="addProfileView">
-      <div style="font-family:'Caveat',cursive;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:8px">Nuovo profilo</div>
-      <div id="emojiPicker" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px;max-width:260px">
-        <span style="font-family:'Patrick Hand',cursive;font-size:.85rem;color:var(--ink-light);width:100%;text-align:center">Scegli emoji:</span>
-      </div>
-      <input id="newProfileName" placeholder="Nome (es. Marco)" maxlength="12"
-        style="font-family:'Caveat',cursive;font-size:1.2rem;padding:10px 16px;border-radius:12px;border:2.5px solid #ddd;width:220px;text-align:center;margin-bottom:8px;outline:none">
-      <div style="font-family:'Patrick Hand',cursive;font-size:.85rem;color:var(--ink-light);margin-bottom:6px">Scegli PIN a 4 cifre:</div>
-      <div class="pin-dots-row" id="newPinDots">
-        <div class="pin-dot-big" id="npd0"></div>
-        <div class="pin-dot-big" id="npd1"></div>
-        <div class="pin-dot-big" id="npd2"></div>
-        <div class="pin-dot-big" id="npd3"></div>
-      </div>
-      <div class="pin-keypad" style="margin-top:8px">
-        <button class="pin-key" onclick="newPinKey('1')">1</button>
-        <button class="pin-key" onclick="newPinKey('2')">2</button>
-        <button class="pin-key" onclick="newPinKey('3')">3</button>
-        <button class="pin-key" onclick="newPinKey('4')">4</button>
-        <button class="pin-key" onclick="newPinKey('5')">5</button>
-        <button class="pin-key" onclick="newPinKey('6')">6</button>
-        <button class="pin-key" onclick="newPinKey('7')">7</button>
-        <button class="pin-key" onclick="newPinKey('8')">8</button>
-        <button class="pin-key" onclick="newPinKey('9')">9</button>
-        <button class="pin-key empty"></button>
-        <button class="pin-key" onclick="newPinKey('0')">0</button>
-        <button class="pin-key del" onclick="newPinKey('del')">⌫</button>
-      </div>
-      <div class="pin-error-msg" id="newPinError"></div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button onclick="confirmAddProfile()" style="font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;padding:10px 22px;background:var(--green);border:2.5px solid #1A7A45;border-radius:24px;color:white;cursor:pointer;box-shadow:3px 3px 0 #1A7A45">✅ Crea</button>
-        <button class="pin-back-btn" onclick="showProfiles()">← Annulla</button>
-      </div>
+<!-- ══ SCHERMATA PROFILO ══════════════════ -->
+<div id="profile-screen">
+  <div class="profile-box">
+    <div class="profile-logo">Fresh<em>Track</em></div>
+    <div class="profile-subtitle">Chi sei oggi?</div>
+    <div class="profile-list" id="profile-list"></div>
+    <div class="divider-row">oppure crea nuovo profilo</div>
+    <div class="new-profile-row">
+      <input type="text" class="form-input" id="new-profile-name" placeholder="Il tuo nome…" maxlength="24" autocomplete="off">
+      <button class="btn btn-primary" id="create-profile-btn">Crea</button>
     </div>
   </div>
 </div>
 
-<div class="app-cover">
-  <div class="cover-spiral"></div>
-  <div class="cover-rings" id="coverRings"></div>
-  <div class="cover-icon">🍎</div>
-  <div class="cover-text">
-    <div class="title">Il Mio Diario Alimentare</div>
-    <div class="subtitle">✏️ Ogni giorno segno cosa ho mangiato e come mi sento!</div>
+<!-- ══ APP ═══════════════════════════════ -->
+<div id="app-screen">
+
+<header>
+  <div class="logo">Fresh<em>Track</em></div>
+  <div class="header-right">
+    <button class="profile-pill" id="profile-switcher-btn">
+      <span class="mini-av" id="header-mini-av"></span>
+      <span id="header-profile-name"></span>
+    </button>
+    <button class="btn btn-ghost btn-icon" id="notif-btn" title="Notifiche">🔔</button>
+    <button class="btn btn-outline" id="ocr-btn">📷 Scansiona data</button>
+    <button class="btn btn-primary" id="add-btn">+ Aggiungi</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="stats-bar">
+    <div class="stat-card red"><div class="label">Scaduti / oggi</div><div class="value" id="stat-expired">0</div></div>
+    <div class="stat-card amber"><div class="label">In scadenza (7gg)</div><div class="value" id="stat-soon">0</div></div>
+    <div class="stat-card green"><div class="label">Freschi</div><div class="value" id="stat-fresh">0</div></div>
+    <div class="stat-card"><div class="label">Totale prodotti</div><div class="value" id="stat-total">0</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Cerca prodotto…">
+    </div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">Tutti</button>
+      <button class="filter-tab" data-filter="expired">Scaduti</button>
+      <button class="filter-tab" data-filter="soon">In scadenza</button>
+      <button class="filter-tab" data-filter="fresh">Freschi</button>
+    </div>
+  </div>
+
+  <div id="products-list"></div>
+</div>
+
+<!-- MODAL AGGIUNTA -->
+<div class="modal-overlay hidden" id="add-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Aggiungi prodotto</div>
+      <button class="btn btn-ghost btn-icon" id="close-add-modal">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nome prodotto *</label>
+      <input type="text" class="form-input" id="input-name" placeholder="es. Latte fresco, Yogurt…" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Data di scadenza *</label>
+        <input type="date" class="form-input" id="input-date">
+        <div class="date-chips">
+          <button class="date-chip" data-days="7">+7 gg</button>
+          <button class="date-chip" data-days="15">+15 gg</button>
+          <button class="date-chip" data-days="30">+1 mese</button>
+          <button class="date-chip" data-days="90">+3 mesi</button>
+          <button class="date-chip" data-days="365">+1 anno</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <select class="form-input" id="input-category">
+          <option value="Latticini">🥛 Latticini</option>
+          <option value="Carne">🥩 Carne</option>
+          <option value="Pesce">🐟 Pesce</option>
+          <option value="Frutta">🍎 Frutta</option>
+          <option value="Verdura">🥦 Verdura</option>
+          <option value="Pane">🍞 Pane</option>
+          <option value="Bevande">🧃 Bevande</option>
+          <option value="Conserve">🥫 Conserve</option>
+          <option value="Surgelati">🧊 Surgelati</option>
+          <option value="Altro" selected>📦 Altro</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note (opzionale)</label>
+      <input type="text" class="form-input" id="input-notes" placeholder="es. Aperto il…">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" id="cancel-add">Annulla</button>
+      <button class="btn btn-primary" id="save-product">Salva prodotto</button>
+    </div>
   </div>
 </div>
 
-<!-- NOTEBOOK -->
-<div class="notebook">
-  <div class="nb-spine"></div>
-  <div class="nb-rings" id="nbRings"></div>
+<!-- MODAL OCR -->
+<div class="modal-overlay hidden" id="ocr-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Leggi data di scadenza</div>
+      <button class="btn btn-ghost btn-icon" id="close-ocr-modal">✕</button>
+    </div>
 
-  <div class="nb-content">
-
-    <!-- MONTH NAV -->
-    <div class="month-nav">
-      <button class="month-nav-arrow" id="btnPrevMonth" onclick="changeMonth(-1)">◀</button>
-      <div class="month-label" id="monthLabel">—</div>
-      <button class="month-nav-arrow" id="btnNextMonth" onclick="changeMonth(+1)">▶</button>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <div class="pdf-status none" id="pdfStatus">📄 Nessun menù caricato</div>
-        <button class="btn-upload-pdf" onclick="document.getElementById('pdfInput').click()">📤 Carica PDF menù</button>
-        <button id="btnClearMenu" onclick="clearCurrentMonthMenu()" style="display:none;font-family:Caveat,cursive;font-size:1rem;font-weight:700;padding:8px 14px;background:#fff;border:2.5px solid #F46B6B;border-radius:24px;color:#F46B6B;cursor:pointer;box-shadow:2px 2px 0 #F46B6B" title="Cancella il menù di questo mese e ricaricalo da PDF">🗑️ Cancella menù</button>
-        <input type="file" id="pdfInput" accept=".pdf" onchange="handlePdfUpload(event)">
+    <div id="ocr-step-upload">
+      <div class="ocr-drop-area" id="ocr-drop">
+        <input type="file" accept="image/*" capture="environment" id="ocr-file-input">
+        <div class="ocr-drop-icon">📷</div>
+        <div class="ocr-drop-text">Scatta una foto o carica un'immagine</div>
+        <div class="ocr-drop-sub">Inquadra bene la data stampata sul prodotto</div>
       </div>
     </div>
 
-    <!-- LEGEND -->
-    <div class="legend">
-      <div class="leg-item"><div class="leg-dot" style="background:var(--green);color:#fff">✓</div> Ho mangiato</div>
-      <div class="leg-item"><div class="leg-dot" style="background:var(--red);color:#fff">✗</div> Non ho mangiato</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#eee;border:2px solid #ccc"></div> Da decidere</div>
-      <div class="leg-item"><div style="width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block"></div> Giorno scolastico</div>
+    <div id="ocr-step-analyzing" style="display:none">
+      <div class="ocr-preview-wrap"><img id="ocr-preview-img" src="" alt="anteprima"></div>
+      <div class="ocr-status" id="ocr-status">Analisi in corso…</div>
+      <div class="ocr-progress-bar-wrap"><div class="ocr-progress-bar" id="ocr-progress-bar" style="width:0%"></div></div>
+      <button class="btn btn-outline btn-sm" id="ocr-retry-btn" style="margin-top:4px">↺ Cambia immagine</button>
     </div>
 
-    <!-- CALENDAR -->
-    <div class="cal-header" id="calHeader"></div>
-    <div class="calendar" id="calendar"></div>
+    <div id="ocr-step-results" style="display:none">
+      <div class="ocr-preview-wrap"><img id="ocr-result-img" src="" alt="anteprima"></div>
+      <div class="form-label" style="margin-bottom:10px">Date trovate — scegli quella corretta:</div>
+      <div class="ocr-results" id="ocr-results-list"></div>
+      <div id="ocr-no-results" style="display:none;text-align:center;padding:20px;color:var(--text3)">
+        <div style="font-size:28px;margin-bottom:8px">🔍</div>
+        <div style="font-size:14px">Nessuna data trovata. Prova con una foto più nitida o inserisci manualmente.</div>
+      </div>
+      <div class="form-actions" style="margin-top:16px">
+        <button class="btn btn-outline" id="ocr-retry2-btn">↺ Altra foto</button>
+        <button class="btn btn-ghost" id="ocr-manual-btn">Inserisci manualmente</button>
+      </div>
+    </div>
 
-    <!-- DAY DETAIL -->
-    <div id="dayDetail"></div>
-
+    <canvas id="ocr-canvas" style="display:none"></canvas>
   </div>
 </div>
 
-<!-- BOTTOM BUTTONS -->
-<div class="bottom-bar">
-  <button class="btn-dl green" onclick="downloadCSV()">📥 Scarica diario (CSV)</button>
-  <button class="btn-dl blue" onclick="window.print()">🖨️ Stampa</button>
-  <button class="btn-dl" id="btnAnalysis" style="background:linear-gradient(135deg,#A29BFE,#6C5CE7);border:2.5px solid #4834D4;box-shadow:3px 3px 0 #4834D4" onclick="toggleAnalysis()">🔍 Analisi sintomi</button>
-  <button class="btn-dl" style="background:linear-gradient(135deg,#FDCB6E,#E17055);border:2.5px solid #B35309;box-shadow:3px 3px 0 #B35309" onclick="exportBackup()">💾 Backup</button>
-  <button class="btn-dl" style="background:linear-gradient(135deg,#55efc4,#00b894);border:2.5px solid #007a5e;box-shadow:3px 3px 0 #007a5e" onclick="document.getElementById('restoreInput').click()">📂 Ripristina</button>
-  <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="importBackup(event)">
-</div>
-
-<!-- ANALYSIS PANEL -->
-<div class="analysis-panel" id="analysisPanel" style="display:none">
-  <div class="nb-spine2"></div>
-  <div class="analysis-content">
-    <div class="analysis-title">🔍 Analisi Sintomi</div>
-    <div class="analysis-subtitle">
-      Qui puoi vedere quali alimenti compaiono più spesso nei giorni in cui hai avuto sintomi. 
-      Più volte un alimento è stato mangiato in un giorno con sintomi, più potrebbe essere sospetto! ⚠️
-    </div>
-
-    <!-- Symptom filter -->
-    <div class="sym-filter-row" id="symFilterRow"></div>
-
-    <!-- Content -->
-    <div id="analysisContent"></div>
+<!-- NOTIF BANNER -->
+<div class="notif-banner hidden" id="notif-banner">
+  <div class="notif-icon">⚠️</div>
+  <div class="notif-text">
+    <div class="notif-title" id="notif-title"></div>
+    <div class="notif-msg" id="notif-msg"></div>
   </div>
+  <button class="notif-close" id="notif-close-btn">✕</button>
 </div>
 
-<!-- MODAL -->
-<div class="modal-bg" id="modalBg" style="display:none">
-  <div class="modal" id="modalBox"></div>
-</div>
+</div><!-- /app-screen -->
 
 <script>
-// =====================================================================
-// pdf.js worker
-// =====================================================================
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// ══════════════════════════════════════════
+// PROFILI — chiavi ft2_* per non collidere
+// con diario-alimentare o versioni vecchie
+// ══════════════════════════════════════════
+const LS_PROFILES = 'ft2_profiles';
+const LS_ACTIVE   = 'ft2_active_profile';
+const AV_COLORS   = ['av-0','av-1','av-2','av-3','av-4','av-5','av-6','av-7'];
 
-// =====================================================================
-// AUTH / PROFILES
-// =====================================================================
-const PROFILES_KEY  = 'diario_profiles_v1';
-const PROFILE_EMOJIS = ['🦁','🐼','🦊','🐸','🦋','🐧','🦄','🐙','🦖','🐯','🐻','🐨','🦀','🦩','🐶','🐱'];
+const getProfiles  = ()  => JSON.parse(localStorage.getItem(LS_PROFILES) || '[]');
+const saveProfiles = arr => localStorage.setItem(LS_PROFILES, JSON.stringify(arr));
+const getActiveId  = ()  => localStorage.getItem(LS_ACTIVE) || null;
+const setActiveId  = id  => localStorage.setItem(LS_ACTIVE, id);
+const prodKey      = id  => 'ft2_products_' + id;
+const uid          = ()  => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-let currentUser   = null; // { id, name, emoji, pin, isAdmin }
-let pinBuffer     = '';
-let newPinBuffer  = '';
-let selectedEmoji = '🦁';
-let pendingProfileId = null;
+// Migra vecchi dati (chiave originale freshtrack_products)
+;(function migrate() {
+  const old = localStorage.getItem('freshtrack_products');
+  if (!old || old === '[]') return;
+  if (getProfiles().length > 0) return;
+  const id = uid();
+  saveProfiles([{ id, name: 'Io', avatarColor: 'av-0', createdAt: new Date().toISOString() }]);
+  localStorage.setItem(prodKey(id), old);
+  localStorage.removeItem('freshtrack_products');
+})();
 
-function loadProfiles(){
-  try{
-    const raw = localStorage.getItem(PROFILES_KEY);
-    if(raw) return JSON.parse(raw);
-  }catch(e){}
-  return [];
-}
-function saveProfiles(profiles){
-  localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
-}
-
-function getUserStorageKey(userId){
-  return `diario_user_${userId}_v3`;
-}
-
-function loadUserState(userId){
-  try{
-    const raw = localStorage.getItem(getUserStorageKey(userId));
-    if(raw) return JSON.parse(raw);
-  }catch(e){}
-  return { days:{}, menus:{} };
-}
-function saveUserState(userId, state){
-  try{ localStorage.setItem(getUserStorageKey(userId), JSON.stringify(state)); }catch(e){}
-}
-
-// loadState/saveState defined in PERSISTENCE section below
-
-// ── Render profile grid ──────────────────────────────────────────────
-function renderProfilesGrid(){
-  const profiles = loadProfiles();
-  const grid = document.getElementById('profilesGrid');
-  grid.innerHTML = '';
-
-  profiles.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'profile-card' + (p.isAdmin ? ' admin' : '');
-    card.innerHTML = `
-      <div class="profile-emoji">${p.emoji}</div>
-      <div class="profile-name">${p.name}</div>
-      <div class="profile-pin-dots">
-        ${[0,1,2,3].map(()=>'<div class="pin-dot"></div>').join('')}
-      </div>`;
-    card.onclick = () => selectProfile(p);
-    grid.appendChild(card);
-  });
-
-  // Se non ci sono profili, crea admin di default
-  if(profiles.length === 0){
-    showAddProfile(true);
+function renderProfileScreen() {
+  const profiles = getProfiles();
+  const list = document.getElementById('profile-list');
+  if (!profiles.length) {
+    list.innerHTML = '<div class="profile-empty">Nessun profilo — creane uno!</div>';
+    return;
   }
+  list.innerHTML = profiles.map(p => {
+    const count = JSON.parse(localStorage.getItem(prodKey(p.id)) || '[]').length;
+    return `
+    <button class="profile-item" onclick="selectProfile('${p.id}')">
+      <div class="profile-avatar ${p.avatarColor}">${escHtml(p.name.charAt(0).toUpperCase())}</div>
+      <div class="profile-item-info">
+        <div class="profile-item-name">${escHtml(p.name)}</div>
+        <div class="profile-item-count">${count} prodott${count===1?'o':'i'}</div>
+      </div>
+      <button class="profile-del" onclick="deleteProfile(event,'${p.id}')" title="Elimina">✕</button>
+    </button>`;
+  }).join('');
 }
 
-// ── Seleziona profilo → mostra PIN ───────────────────────────────────
-function selectProfile(profile){
-  pendingProfileId = profile.id;
-  pinBuffer = '';
-  document.getElementById('pinAvatar').textContent   = profile.emoji;
-  document.getElementById('pinGreeting').textContent = `Ciao, ${profile.name}!`;
-  document.getElementById('pinError').textContent    = '';
-  updatePinDots('pinDots', 'pd', 0);
-
-  document.getElementById('profilesView').style.display = 'none';
-  document.getElementById('pinView').classList.add('active');
-  document.getElementById('addProfileView').classList.remove('active');
-}
-
-function showProfiles(){
-  pinBuffer = ''; newPinBuffer = '';
-  document.getElementById('profilesView').style.display = 'block';
-  document.getElementById('pinView').classList.remove('active');
-  document.getElementById('addProfileView').classList.remove('active');
-  renderProfilesGrid();
-}
-
-// ── PIN keypad ───────────────────────────────────────────────────────
-function pinKey(val){
-  if(val === 'del'){
-    pinBuffer = pinBuffer.slice(0,-1);
-  } else if(pinBuffer.length < 4){
-    pinBuffer += val;
-  }
-  updatePinDots('pinDots','pd', pinBuffer.length);
-  document.getElementById('pinError').textContent = '';
-
-  if(pinBuffer.length === 4){
-    // check PIN
-    const profiles = loadProfiles();
-    const profile  = profiles.find(p => p.id === pendingProfileId);
-    if(profile && profile.pin === pinBuffer){
-      loginAs(profile);
-    } else {
-      // Wrong PIN
-      for(let i=0;i<4;i++) document.getElementById(`pd${i}`).classList.add('error');
-      document.getElementById('pinError').textContent = '❌ PIN errato, riprova';
-      setTimeout(()=>{
-        pinBuffer = '';
-        updatePinDots('pinDots','pd',0);
-        for(let i=0;i<4;i++) document.getElementById(`pd${i}`).classList.remove('error');
-      }, 900);
-    }
-  }
-}
-
-function updatePinDots(rowId, prefix, count){
-  for(let i=0;i<4;i++){
-    const dot = document.getElementById(`${prefix}${i}`);
-    if(!dot) continue;
-    dot.classList.toggle('filled', i < count);
-    dot.classList.remove('error');
-  }
-}
-
-// ── Login ─────────────────────────────────────────────────────────────
-function loginAs(profile){
-  currentUser = profile;
-  appState = loadUserState(profile.id);
-
-  // Hide login screen, show app
-  document.getElementById('loginScreen').style.display = 'none';
-
-  // Update cover subtitle with user name
-  const sub = document.querySelector('.cover-text .subtitle');
-  if(sub) sub.textContent = `${profile.emoji} ${profile.name}`;
-
-  // Add user bar to notebook
-  renderUserBar();
-
-  // If admin, show switcher panel
-  if(profile.isAdmin) renderAdminSwitcher();
-
-  currentYear  = new Date().getFullYear();
-  currentMonth = new Date().getMonth();
-  selectedDate = null;
-  renderCalHeader();
-  renderCalendar();
-  updatePdfStatus();
-  const todayStr = new Date().toISOString().slice(0,10);
-  selectDay(todayStr);
-}
-
-function logout(){
-  currentUser = null;
-  appState = { days:{}, menus:{} };
-  selectedDate = null;
-
-  // Remove user bar
-  const ub = document.getElementById('userBar');
-  if(ub) ub.remove();
-  const as = document.getElementById('adminSwitcher');
-  if(as) as.remove();
-
-  document.getElementById('loginScreen').style.display = 'flex';
-  showProfiles();
-}
-
-// ── User bar (shown inside notebook when logged in) ───────────────────
-function renderUserBar(){
-  const existing = document.getElementById('userBar');
-  if(existing) existing.remove();
-
-  const nb = document.querySelector('.nb-content');
-  if(!nb) return;
-
-  const bar = document.createElement('div');
-  bar.id = 'userBar';
-  bar.className = 'user-bar';
-  bar.innerHTML = `
-    <div class="user-bar-avatar">${currentUser.emoji}</div>
-    <div class="user-bar-name">${currentUser.name}</div>
-    <button class="btn-logout" onclick="logout()">🚪 Esci</button>`;
-  nb.insertBefore(bar, nb.firstChild);
-}
-
-// ── Admin switcher (genitore può vedere altri diari) ──────────────────
-function renderAdminSwitcher(){
-  const existing = document.getElementById('adminSwitcher');
-  if(existing) existing.remove();
-
-  const profiles = loadProfiles().filter(p => !p.isAdmin);
-  if(profiles.length === 0) return;
-
-  const nb = document.querySelector('.nb-content');
-  if(!nb) return;
-
-  const wrap = document.createElement('div');
-  wrap.id = 'adminSwitcher';
-  wrap.style.cssText = 'background:linear-gradient(135deg,#F0EBFF,#E8E0FF);border:2px solid #9B7FE8;border-radius:14px;padding:14px 16px;margin-bottom:14px';
-
-  let html = `<div style="font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;color:#4834D4;margin-bottom:10px">👨‍👩‍👧 Stai vedendo il diario di:</div>
-              <div class="admin-user-list">`;
-  
-  // Add self (admin)
-  html += `<div class="admin-user-row current" id="adminRow_${currentUser.id}">
-    <div class="aur-emoji">${currentUser.emoji}</div>
-    <div class="aur-name">${currentUser.name}</div>
-    <div class="aur-badge">tu</div>
-  </div>`;
-
-  profiles.forEach(p => {
-    html += `<div class="admin-user-row" id="adminRow_${p.id}" onclick="adminSwitchTo('${p.id}')">
-      <div class="aur-emoji">${p.emoji}</div>
-      <div class="aur-name">${p.name}</div>
-      <div class="aur-badge">visualizza</div>
-    </div>`;
-  });
-
-  html += '</div>';
-  wrap.innerHTML = html;
-
-  const userBar = document.getElementById('userBar');
-  if(userBar) userBar.after(wrap);
-  else nb.insertBefore(wrap, nb.firstChild);
-}
-
-let viewingUserId = null; // admin viewing another user's data
-
-function adminSwitchTo(userId){
-  const profiles = loadProfiles();
-  const target = profiles.find(p => p.id === userId);
-  if(!target) return;
-
-  viewingUserId = userId;
-  appState = loadUserState(userId);
-
-  // Update UI highlight
-  document.querySelectorAll('.admin-user-row').forEach(r => r.classList.remove('current'));
-  const row = document.getElementById(`adminRow_${userId}`);
-  if(row) row.classList.add('current');
-
-  const sub = document.querySelector('.cover-text .subtitle');
-  if(sub) sub.textContent = `${target.emoji} ${target.name} (admin)`;
-
-  selectedDate = null;
-  document.getElementById('dayDetail').innerHTML = '';
-  renderCalendar();
-  updatePdfStatus();
-}
-
-// saveState is defined below - see STATE section override
-
-// ── Add new profile ───────────────────────────────────────────────────
-function showAddProfile(isFirst){
-  newPinBuffer = '';
-  selectedEmoji = PROFILE_EMOJIS[0];
-  document.getElementById('newProfileName').value = '';
-  document.getElementById('newPinError').textContent = '';
-  updatePinDots('newPinDots','npd',0);
-
-  // Build emoji picker
-  const picker = document.getElementById('emojiPicker');
-  picker.innerHTML = '<span style="font-family:\'Patrick Hand\',cursive;font-size:.85rem;color:var(--ink-light);width:100%;text-align:center">Scegli emoji:</span>';
-  PROFILE_EMOJIS.forEach(em => {
-    const btn = document.createElement('button');
-    btn.textContent = em;
-    btn.style.cssText = 'font-size:1.6rem;background:white;border:2.5px solid #ddd;border-radius:10px;padding:4px 7px;cursor:pointer;transition:all .15s';
-    btn.onclick = () => {
-      selectedEmoji = em;
-      picker.querySelectorAll('button').forEach(b => b.style.borderColor='#ddd');
-      btn.style.borderColor = '#9B7FE8';
-    };
-    if(em === selectedEmoji) btn.style.borderColor = '#9B7FE8';
-    picker.appendChild(btn);
-  });
-
-  document.getElementById('profilesView').style.display = isFirst ? 'none' : 'none';
-  document.getElementById('pinView').classList.remove('active');
-  document.getElementById('addProfileView').classList.add('active');
-}
-
-function newPinKey(val){
-  if(val === 'del'){
-    newPinBuffer = newPinBuffer.slice(0,-1);
-  } else if(newPinBuffer.length < 4){
-    newPinBuffer += val;
-  }
-  updatePinDots('newPinDots','npd', newPinBuffer.length);
-}
-
-function confirmAddProfile(){
-  const name = document.getElementById('newProfileName').value.trim();
-  const errEl = document.getElementById('newPinError');
-
-  if(!name){ errEl.textContent = '⚠️ Inserisci un nome'; return; }
-  if(newPinBuffer.length !== 4){ errEl.textContent = '⚠️ PIN deve essere 4 cifre'; return; }
-
-  const profiles = loadProfiles();
-  const isFirst  = profiles.length === 0;
-  const newProfile = {
-    id:      'u_' + Date.now(),
-    name,
-    emoji:   selectedEmoji,
-    pin:     newPinBuffer,
-    isAdmin: isFirst // primo profilo creato = admin
-  };
-  profiles.push(newProfile);
-  saveProfiles(profiles);
-
-  showProfiles();
-}
-
-
-// =====================================================================
-// STATE
-// =====================================================================
-const STORAGE_KEY = 'diario_alimentare_v3';
-let appState = { days:{}, menus:{} }; // will be loaded after login
-
-let currentYear  = new Date().getFullYear();
-let currentMonth = new Date().getMonth(); // 0-indexed
-let selectedDate = null; // 'YYYY-MM-DD'
-
-const MEAL_CONFIG = [
-  { key:'colazione',  label:'🌅 Colazione',      cls:'m-col' },
-  { key:'spuntino1',  label:'🍎 Spuntino mattina',cls:'m-spu' },
-  { key:'pranzo',     label:'🍽️ Pranzo',          cls:'m-pra' },
-  { key:'merenda',    label:'🧃 Merenda',          cls:'m-mer' },
-  { key:'cena',       label:'🌙 Cena',             cls:'m-cen' },
-];
-
-const SYMPTOMS = [
-  { id:'gonfiore',   emoji:'🎈', label:'Gonfiore' },
-  { id:'mal_pancia', emoji:'😣', label:'Mal di pancia' },
-  { id:'prurito',    emoji:'👁️', label:'Prurito occhi' },
-  { id:'rumore',     emoji:'🔊', label:'Pancia rumorosa' },
-  { id:'diarrea',    emoji:'🚽', label:'Diarrea' },
-];
-
-const DAY_NAMES_IT = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
-const MONTH_NAMES_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-
-// =====================================================================
-// PERSISTENCE
-// =====================================================================
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw) return JSON.parse(raw);
-  }catch(e){}
-  return { days:{}, menus:{} };
-}
-function saveState(){
-  if(!currentUser) return;
-  if(viewingUserId && viewingUserId !== currentUser.id) return; // admin reading only
-  saveUserState(viewingUserId || currentUser.id, appState);
-}
-
-function getDayState(dateStr){
-  if(!appState.days[dateStr])
-    appState.days[dateStr] = { eaten:{}, symptoms:{pranzo:{},merenda:{},cena:{}}, notes:'' };
-  const ds = appState.days[dateStr];
-  // Migrate old flat symptoms -> pranzo slot
-  if(ds.symptoms && !ds.symptoms.pranzo){
-    const old = ds.symptoms;
-    ds.symptoms = { pranzo: old, merenda: {}, cena: {} };
-  }
-  return ds;
-}
-
-function getMonthMenu(ym){ // ym = 'YYYY-MM'
-  return appState.menus[ym] || null;
-}
-
-// =====================================================================
-// BUILD RINGS
-// =====================================================================
-function buildRings(containerId, count){
-  const c = document.getElementById(containerId);
-  for(let i=0;i<count;i++){
-    const r = document.createElement('div');
-    r.className = containerId === 'nbRings' ? 'nb-ring' : 'c-ring';
-    c.appendChild(r);
-  }
-}
-
-// =====================================================================
-// CALENDAR RENDER
-// =====================================================================
-function renderCalHeader(){
-  const hdr = document.getElementById('calHeader');
-  hdr.innerHTML = '';
-  const labels = [
-    {l:'Lun',c:'ch-mon'},{l:'Mar',c:'ch-tue'},{l:'Mer',c:'ch-wed'},
-    {l:'Gio',c:'ch-thu'},{l:'Ven',c:'ch-fri'},{l:'Sab',c:'ch-sat'},{l:'Dom',c:'ch-sun'}
-  ];
-  labels.forEach(x=>{
-    const d = document.createElement('div');
-    d.className = `cal-header-cell ${x.c}`;
-    d.textContent = x.l;
-    hdr.appendChild(d);
-  });
-}
-
-function renderCalendar(){
-  document.getElementById('monthLabel').textContent =
-    `${MONTH_NAMES_IT[currentMonth]} ${currentYear}`;
-
-  const cal = document.getElementById('calendar');
-  cal.innerHTML = '';
-
-  const today = new Date();
-  today.setHours(0,0,0,0);
-
-  const firstDay = new Date(currentYear, currentMonth, 1);
-  // Monday-based: Mon=0...Sun=6
-  let startOffset = firstDay.getDay() - 1;
-  if(startOffset < 0) startOffset = 6;
-
-  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
-  const ym = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
-  const monthMenu = getMonthMenu(ym);
-
-  // empty cells
-  for(let i=0;i<startOffset;i++){
-    const e = document.createElement('div');
-    e.className='cal-empty';
-    cal.appendChild(e);
-  }
-
-  for(let d=1; d<=daysInMonth; d++){
-    const dateStr = `${ym}-${String(d).padStart(2,'0')}`;
-    const dateObj  = new Date(currentYear, currentMonth, d);
-    dateObj.setHours(0,0,0,0);
-    const wd = dateObj.getDay(); // 0=sun,1=mon...6=sat
-    const isWeekend = (wd===0||wd===6);
-    const isSchool = !isWeekend && monthMenu && monthMenu[dateStr];
-    const isFuture = dateObj > today;
-    const isToday  = dateObj.getTime()===today.getTime();
-    const isSelected = selectedDate === dateStr;
-
-    const ds = getDayState(dateStr);
-    const allFoods = getAllFoodsForDay(dateStr);
-    const total = allFoods.length;
-    const eaten = allFoods.filter(k=>ds.eaten[k]==='eaten').length;
-    const pct = total>0 ? (eaten/total)*100 : 0;
-    const activeSyms = SYMPTOMS.filter(s=>hasSymptom(ds,s.id));
-
-    // weekday for color (1=mon...5=fri,6=sat,0=sun)
-    const wdMon = wd===0?0:wd; // keep as is for data-wd
-
-    const cell = document.createElement('div');
-    cell.className = [
-      'cal-day',
-      isWeekend?'weekend':'school-day',
-      isSchool?'school':'',
-      isFuture?'future':'',
-      isToday?'today':'',
-      isSelected?'selected':''
-    ].filter(Boolean).join(' ');
-    cell.setAttribute('data-wd', wd);
-    cell.setAttribute('data-date', dateStr);
-
-    const numEl = document.createElement('div');
-    numEl.className = 'day-num';
-    numEl.textContent = d;
-    cell.appendChild(numEl);
-
-    if(isSchool){
-      const dot = document.createElement('div');
-      dot.className = 'day-school-dot';
-      cell.appendChild(dot);
-    }
-
-    if(pct>0){
-      const bar = document.createElement('div');
-      bar.className = 'day-eaten-bar';
-      bar.style.width = pct+'%';
-      cell.appendChild(bar);
-    }
-
-    if(activeSyms.length>0){
-      const symRow = document.createElement('div');
-      symRow.className = 'day-symptom-row';
-      activeSyms.forEach(s=>{
-        const dot = document.createElement('span');
-        dot.className = 'day-sym-dot';
-        dot.textContent = s.emoji;
-        symRow.appendChild(dot);
-      });
-      cell.appendChild(symRow);
-    }
-
-    cell.onclick = () => selectDay(dateStr);
-    cal.appendChild(cell);
-  }
-}
-
-// =====================================================================
-// SELECT DAY
-// =====================================================================
-function selectDay(dateStr){
-  selectedDate = dateStr;
-  renderCalendar();
-  renderDayDetail();
-}
-
-// =====================================================================
-// DAY DETAIL
-// =====================================================================
-function getAllFoodsForDay(dateStr){
-  const ym = dateStr.slice(0,7);
-  const menu = getMonthMenu(ym);
-  const dayMenu = menu && menu[dateStr];
-  const keys = [];
-  if(dayMenu){
-    MEAL_CONFIG.forEach(mc=>{
-      const items = dayMenu[mc.key]||[];
-      items.forEach((_,i)=> keys.push(`${mc.key}_${i}`));
-    });
-  }
-  // also weekend manual items
-  const ds = getDayState(dateStr);
-  if(ds.manualItems){
-    MEAL_CONFIG.forEach(mc=>{
-      const items = ds.manualItems[mc.key]||[];
-      items.forEach((_,i)=> keys.push(`manual_${mc.key}_${i}`));
-    });
-  }
-  return keys;
-}
-
-function calcProgress(dateStr){
-  const all = getAllFoodsForDay(dateStr);
-  const ds = getDayState(dateStr);
-  const eaten = all.filter(k=>ds.eaten[k]==='eaten').length;
-  return all.length>0 ? Math.round(eaten/all.length*100) : 0;
-}
-
-function renderDayDetail(){
-  const container = document.getElementById('dayDetail');
-  if(!selectedDate){ container.innerHTML=''; return; }
-
-  const dateObj = new Date(selectedDate+'T12:00:00');
-  const wd = dateObj.getDay();
-  const isWeekend = (wd===0||wd===6);
-  const dayNamesLong = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
-  const dayName = dayNamesLong[wd];
-  const dayNum  = dateObj.getDate();
-  const monthName = MONTH_NAMES_IT[dateObj.getMonth()];
-  const year = dateObj.getFullYear();
-
-  const ym = selectedDate.slice(0,7);
-  const menu = getMonthMenu(ym);
-  const dayMenu = menu && menu[selectedDate];
-  const ds = getDayState(selectedDate);
-  const pct = calcProgress(selectedDate);
-
-  let html = `
-    <div class="day-panel">
-      <div class="day-panel-header">
-        <span style="font-size:1.6rem">${isWeekend?'🏠':'🏫'}</span>
-        <div class="dph-date">${dayName} ${dayNum} ${monthName} ${year}</div>
-        <div class="dph-badge ${isWeekend?'weekend':'school'}">
-          ${isWeekend?'🏠 Weekend':'🏫 Scolastico'}
-        </div>
-      </div>`;
-
-  if(pct>0 || !isWeekend){
-    html += `
-      <div class="progress-row">
-        <div class="prog-label">🍴 Mangiato:</div>
-        <div class="prog-bar-out"><div class="prog-bar-in" style="width:${pct}%"></div></div>
-        <div class="prog-pct">${pct}%</div>
-      </div>`;
-  }
-
-  html += `<div class="meals-wrap">`;
-
-  MEAL_CONFIG.forEach((mc,mi)=>{
-    const schoolItems = dayMenu ? (dayMenu[mc.key]||[]) : [];
-    const manualItems = (ds.manualItems&&ds.manualItems[mc.key]) || [];
-    const hasItems = schoolItems.length>0 || manualItems.length>0;
-
-    html += `
-      <div class="meal-block" id="meal-${mc.key}">
-        <div class="meal-head ${mc.cls}" onclick="toggleMeal('${mc.key}')">
-          <span>${mc.label}</span>
-          <span class="meal-arrow" id="arrow-${mc.key}">▾</span>
-        </div>
-        <div class="meal-items-wrap" id="mealBody-${mc.key}">`;
-
-    // School items
-    schoolItems.forEach((item,idx)=>{
-      const key = `${mc.key}_${idx}`;
-      const st = ds.eaten[key]||'none';
-      const icon = st==='eaten'?'✓':st==='not-eaten'?'✗':'';
-      html += `
-        <div class="food-row ${st}" onclick="toggleEaten('${selectedDate}','${key}')">
-          <div class="food-cb ${st}">${icon}</div>
-          <div class="food-text">
-            <div class="food-name">${item.name}</div>
-            ${item.allergens&&item.allergens.length?`<div class="food-allerg">${item.allergens.map(a=>`<span class="allerg-tag">⚠️${a}</span>`).join('')}</div>`:''}
-          </div>
-        </div>`;
-    });
-
-    // Manual items
-    manualItems.forEach((item,idx)=>{
-      const key = `manual_${mc.key}_${idx}`;
-      const st = ds.eaten[key]||'none';
-      const icon = st==='eaten'?'✓':st==='not-eaten'?'✗':'';
-      html += `
-        <div class="food-row ${st}">
-          <div class="food-cb ${st}" onclick="toggleEaten('${selectedDate}','${key}')">${icon}</div>
-          <div class="food-text" onclick="toggleEaten('${selectedDate}','${key}')">
-            <div class="food-name">✏️ ${item.name}</div>
-          </div>
-          <div class="food-del" onclick="deleteManualFood('${selectedDate}','${mc.key}',${idx})" title="Rimuovi">🗑️</div>
-        </div>`;
-    });
-
-    if(!hasItems && !isWeekend){
-      html += `<div style="padding:8px 10px;font-family:'Patrick Hand',cursive;font-size:.85rem;color:#bbb;font-style:italic">Nessun alimento nel menù</div>`;
-    }
-
-    // Add manual food (always)
-    html += `
-        <div class="manual-add-area">
-          <input class="manual-input" id="manualIn-${mc.key}" placeholder="Aggiungi alimento..." onkeydown="if(event.key==='Enter')addManualFood('${selectedDate}','${mc.key}')">
-          <button class="btn-add-food" onclick="addManualFood('${selectedDate}','${mc.key}')">+ Aggiungi</button>
-        </div>
-      </div>`;
-
-    // Inline symptoms after pranzo, merenda, cena
-    if(['pranzo','merenda','cena'].includes(mc.key)){
-      const moment = mc.key;
-      const symLabels = {pranzo:'Dopo il pranzo', merenda:'Dopo la merenda', cena:'Dopo cena'};
-      const momentSyms = (ds.symptoms && ds.symptoms[moment]) || {};
-      html += `<div class="sym-inline-block">
-        <div class="sym-inline-head">💊 ${symLabels[moment]} — come ti sei sentito/a?</div>
-        <div class="sym-inline-grid">`;
-      SYMPTOMS.forEach(sym => {
-        const active = momentSyms[sym.id] ? 'active' : '';
-        html += `<div class="sym-chip ${active}" onclick="toggleSymptom('${selectedDate}','${moment}','${sym.id}')">
-          <span class="sym-chip-emoji">${sym.emoji}</span>${sym.label}</div>`;
-      });
-      html += `</div></div>`;
-    }
-
-    html += `</div>`;
-  });
-
-  html += `</div>`; // meals-wrap
-
-  // Notes
-  html += `
-    <div class="notes-block">
-      <div class="notes-head">✏️ Note del giorno</div>
-      <textarea class="notes-ta" placeholder="Com'è andata oggi? Cosa ti è piaciuto? 😊"
-        onchange="updateNote('${selectedDate}',this.value)">${ds.notes||''}</textarea>
-    </div>
-  </div>`; // close day-panel
-
-  container.innerHTML = html;
-  // scroll into view
-  container.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-
-// Meal collapse toggle
-const openMeals = {};
-function toggleMeal(key){
-  openMeals[key] = !openMeals[key];
-  const body = document.getElementById('mealBody-'+key);
-  const arrow = document.getElementById('arrow-'+key);
-  if(body){
-    body.style.display = openMeals[key]===false ? 'none' : '';
-    const head = body.previousElementSibling;
-    if(arrow) arrow.style.transform = openMeals[key]===false?'rotate(-90deg)':'rotate(0deg)';
-  }
-}
-
-// =====================================================================
-// INTERACTIONS
-// =====================================================================
-function toggleEaten(dateStr, key){
-  const ds = getDayState(dateStr);
-  const cur = ds.eaten[key]||'none';
-  ds.eaten[key] = cur==='none'?'eaten':cur==='eaten'?'not-eaten':'none';
-  saveState();
-  renderCalendar();
-  renderDayDetail();
-}
-
-function toggleSymptom(dateStr, moment, symId){
-  const ds = getDayState(dateStr);
-  if(!ds.symptoms[moment]) ds.symptoms[moment] = {};
-  ds.symptoms[moment][symId] = !ds.symptoms[moment][symId];
-  saveState();
-  renderCalendar();
-  renderDayDetail();
-}
-
-function updateNote(dateStr, val){
-  getDayState(dateStr).notes = val;
-  saveState();
-}
-
-function addManualFood(dateStr, mealKey){
-  const inp = document.getElementById('manualIn-'+mealKey);
-  const name = inp&&inp.value.trim();
-  if(!name) return;
-  const ds = getDayState(dateStr);
-  if(!ds.manualItems) ds.manualItems = {};
-  if(!ds.manualItems[mealKey]) ds.manualItems[mealKey] = [];
-  ds.manualItems[mealKey].push({name});
-  saveState();
-  renderDayDetail();
-}
-
-function deleteManualFood(dateStr, mealKey, idx){
-  const ds = getDayState(dateStr);
-  if(ds.manualItems&&ds.manualItems[mealKey]){
-    ds.manualItems[mealKey].splice(idx,1);
-    // re-index eaten keys for manual items
-    const newEaten = {};
-    Object.entries(ds.eaten).forEach(([k,v])=>{
-      if(!k.startsWith(`manual_${mealKey}_`)){
-        newEaten[k]=v;
-      } else {
-        const i = parseInt(k.split('_').pop());
-        if(i<idx) newEaten[k]=v;
-        else if(i>idx) newEaten[`manual_${mealKey}_${i-1}`]=v;
-      }
-    });
-    ds.eaten = newEaten;
-    saveState();
-    renderDayDetail();
-    renderCalendar();
-  }
-}
-
-function changeMonth(delta){
-  currentMonth += delta;
-  if(currentMonth > 11){ currentMonth=0; currentYear++; }
-  if(currentMonth < 0){ currentMonth=11; currentYear--; }
-  selectedDate = null;
-  renderCalendar();
-  document.getElementById('dayDetail').innerHTML='';
-  updatePdfStatus();
-}
-
-// =====================================================================
-// PDF UPLOAD & PARSE
-// =====================================================================
-let _lastRawText = '';
-
-async function handlePdfUpload(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  event.target.value='';
-  setPdfStatus('loading','⏳ Lettura PDF...');
-  try{
-    const arrayBuf = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({data: arrayBuf}).promise;
-
-    // Estrai tutti gli items con coordinate X,Y dalla pagina 1 (tabella menù)
-    const page   = await pdf.getPage(1);
-    const content = await page.getTextContent();
-    const viewport = page.getViewport({scale:1});
-
-    // Raccogli tutti gli item con posizione
-    const items = content.items.map(item => ({
-      str: item.str.trim(),
-      x: Math.round(item.transform[4]),
-      y: Math.round(item.transform[5]),
-      h: Math.round(Math.abs(item.transform[3])) // font height
-    })).filter(i => i.str.length > 0);
-
-    // Debug: salva per download
-    _lastRawText = items.map(i=>`[x:${i.x} y:${i.y}] ${i.str}`).join('\n');
-
-    const parsed = parseMenuFromItems(items, viewport.height);
-    const dayCount = Object.keys(parsed).length;
-
-    if(dayCount === 0){
-      setPdfStatus('err','❌ Nessun dato trovato');
-      const safe = _lastRawText.slice(0,800).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-      showModal({
-        title:'⚠️ PDF non riconosciuto',
-        body:`Clicca <b>"Scarica testo grezzo"</b> e mandamelo per correggere il parser.<br>
-              <div style="font-family:monospace;font-size:.7rem;background:#f5f5f5;padding:8px;
-              border-radius:8px;max-height:150px;overflow:auto;margin-top:8px;white-space:pre">${safe}</div>`,
-        buttons:[
-          {label:'📄 Scarica debug', action: downloadRawText, cls:'primary'},
-          {label:'Chiudi', action:'close', cls:'secondary'}
-        ]
-      });
-      return;
-    }
-
-    const firstKey = Object.keys(parsed).sort()[0];
-    const detectedYM = firstKey.slice(0,7);
-    const [dy,dm] = detectedYM.split('-').map(Number);
-    const preview = buildPreview(parsed);
-    showModal({
-      title:`📅 Menù trovato: ${MONTH_NAMES_IT[dm-1]} ${dy}`,
-      body:`Ho trovato <b>${dayCount} giorni scolastici</b> nel PDF. Vuoi caricarli?`,
-      preview,
-      buttons:[
-        {label:'✅ Sì, carica!', action:()=>confirmLoadMenu(parsed,detectedYM,dy,dm-1), cls:'primary'},
-        {label:'Annulla', action:'close', cls:'secondary'}
-      ]
-    });
-  } catch(err){
-    console.error(err);
-    setPdfStatus('err','❌ Errore lettura PDF');
-    showModal({
-      title:'❌ Errore',
-      body:`<code>${err.message}</code><br>Assicurati che il PDF non sia protetto da password.`,
-      buttons:[{label:'Chiudi', action:'close', cls:'secondary'}]
-    });
-  }
-}
-
-function downloadRawText(){
-  const blob = new Blob([_lastRawText],{type:'text/plain;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href=url; a.download='debug-pdf.txt'; a.click();
-  URL.revokeObjectURL(url);
-  closeModal();
-}
-
-function confirmLoadMenu(parsed, ym, year, month){
-  appState.menus[ym] = parsed;
-  saveState();
-  closeModal();
-  currentYear = year;
-  currentMonth = month;
-  setPdfStatus('ok',`✅ Menù ${MONTH_NAMES_IT[month]} ${year} caricato`);
-  renderCalendar();
-}
-
-// =====================================================================
-// PARSER BASATO SU COORDINATE XY — Elior/Ribo
-//
-// Struttura PDF pagina 1:
-//   • Riga intestazione:  Primi piatti | Secondi piatti | Contorni | Merende | Snack
-//   • 22 righe dati, ognuna con:
-//       col0 = giorno (lun 02)  +  primo piatto + allergeni
-//       col1 = secondo piatto + allergeni
-//       col2 = contorno
-//       col3 = merenda + allergeni
-//       col4 = snack mattina
-//   • In fondo: legenda, note, ecc.
-//
-// Strategia:
-//   1. Trova le colonne usando gli header "Primi piatti", "Secondi piatti" etc.
-//   2. Raggruppa items per riga (Y simile = stessa riga)
-//   3. Per ogni riga, assegna ogni item alla colonna giusta via X
-//   4. Ricostruisci il menu giorno per giorno
-// =====================================================================
-
-const ALLERGENS_LIST = ['glutine','soia','latte','uova','uovo','pesce','senape','sesamo',
-  'lupino','molluschi','crostacei','frutta a guscio','arachidi','sedano','solfiti','anidride solforosa'];
-
-const MONTHS_MAP = {
-  'gennaio':1,'febbraio':2,'marzo':3,'aprile':4,'maggio':5,'giugno':6,
-  'luglio':7,'agosto':8,'settembre':9,'ottobre':10,'novembre':11,'dicembre':12
+window.selectProfile = id => { setActiveId(id); startApp(); };
+
+window.deleteProfile = function(e, id) {
+  e.stopPropagation();
+  const profiles = getProfiles();
+  const p = profiles.find(x => x.id === id);
+  if (!p) return;
+  const count = JSON.parse(localStorage.getItem(prodKey(id)) || '[]').length;
+  const msg = `Eliminare il profilo "${p.name}"${count > 0 ? ' e i suoi ' + count + ' prodotti' : ''}?`;
+  if (!confirm(msg)) return;
+  saveProfiles(profiles.filter(x => x.id !== id));
+  localStorage.removeItem(prodKey(id));
+  if (getActiveId() === id) localStorage.removeItem(LS_ACTIVE);
+  renderProfileScreen();
 };
 
-function parseMenuFromItems(items, pageHeight) {
-  // ── 1. Rileva mese/anno ────────────────────────────────────────────
-  let detectedYear = new Date().getFullYear();
-  let detectedMonth = new Date().getMonth() + 1;
-  const fullStr = items.map(i=>i.str).join(' ');
-  const mMatch = fullStr.match(/\b(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)\s+(\d{4})\b/i);
-  if(mMatch){
-    detectedMonth = MONTHS_MAP[mMatch[1].toLowerCase()];
-    detectedYear  = parseInt(mMatch[2]);
-  }
-
-  // ── 2. Trova X boundaries delle 5 colonne piatti ──────────────────
-  // Cerca gli header: "Primi piatti", "Secondi piatti", "Contorni", "Merende", "Snack"
-  // Questi definiscono l'X di inizio di ogni colonna
-  const colHeaders = ['primi', 'secondi', 'contorni', 'merende', 'snack'];
-  const colX = [null, null, null, null, null]; // X inizio di ciascuna colonna
-
-  items.forEach(item => {
-    const s = item.str.toLowerCase();
-    if(s.includes('primi') && s.includes('piatti') || s === 'primi piatti') colX[0] = item.x;
-    if(s.includes('secondi') && s.includes('piatti') || s === 'secondi piatti') colX[1] = item.x;
-    if(s === 'contorni' || s.includes('contorni')) colX[2] = item.x;
-    if(s === 'merende' || s.includes('merende')) colX[3] = item.x;
-    if(s === 'snack' || s.includes('snack') && s.length < 10) colX[4] = item.x;
-  });
-
-  // Se non troviamo gli header, prova a inferirli dalla distribuzione X degli items
-  // Il PDF è largo ~595pt, le 6 colonne (giorni+5) si dividono circa così:
-  // col giorni: 0-80, col1: 80-200, col2: 200-320, col3: 320-420, col4: 420-510, col5: 510-595
-  const xBounds = inferColumnBounds(items, colX);
-
-  // ── 3. Estrai lista giorni scolastici ─────────────────────────────
-  const dayPattern = /^(lun|mar|mer|gio|ven)\s+(\d{1,2})/i;
-  const schoolDays = [];
-  const dayItems = items.filter(i => dayPattern.test(i.str.trim()));
-  dayItems.forEach(item => {
-    const m = item.str.trim().match(dayPattern);
-    if(m){
-      const dayNum = parseInt(m[2]);
-      const ds = buildDateStr(detectedYear, detectedMonth, dayNum);
-      if(ds && !schoolDays.find(d=>d.dateStr===ds)){
-        schoolDays.push({dayNum, dateStr:ds, y: item.y});
-      }
-    }
-  });
-  // Ordina per Y decrescente (in PDF Y=0 è in basso, quindi righe in alto = Y più alto)
-  schoolDays.sort((a,b) => b.y - a.y);
-
-  if(schoolDays.length === 0) return {};
-
-  // ── 4. Raggruppa items per riga (Y ± tolleranza) ──────────────────
-  // Ogni giorno occupa più righe di testo (nome piatto + allergeni)
-  // Associamo ogni item al giorno più vicino per Y
-
-  const result = {};
-  schoolDays.forEach(day => {
-    result[day.dateStr] = {
-      colazione: [{name:'Latte fresco + Pane', allergens:['latte','glutine']}],
-      spuntino1: [],
-      pranzo: [],
-      merenda: [],
-      cena: [{name:'Pasto libero 🏠', allergens:[]}],
-      _rawCols: {primo:[], secondo:[], contorno:[], merenda:[], snack:[]}
-    };
-  });
-
-  // Per ogni item non-header, trovare a quale giorno e colonna appartiene
-  // "Giorno" = il giorno la cui Y è la più vicina ma >= Y dell'item (stesso blocco riga)
-  const headerY = Math.max(...schoolDays.map(d=>d.y)) + 20; // Y sopra tutti i giorni
-
-  items.forEach(item => {
-    // Salta header colonne e items sopra la tabella dati
-    if(item.y > headerY) return;
-
-    // Assegna al giorno: il giorno con Y più vicina >= item.y
-    // (ogni giorno inizia alla sua Y e finisce alla Y del giorno precedente)
-    let assignedDay = null;
-    let minDiff = Infinity;
-    schoolDays.forEach(day => {
-      const diff = day.y - item.y; // positivo = item è sotto il giorno
-      if(diff >= -5 && diff < minDiff){ // tolleranza -5pt
-        minDiff = diff;
-        assignedDay = day;
-      }
-    });
-    if(!assignedDay) return;
-
-    // Assegna alla colonna in base a X
-    const col = getColumn(item.x, xBounds);
-    if(col === null) return; // colonna giorno (col0) o fuori range
-
-    const dayData = result[assignedDay.dateStr];
-    if(!dayData) return;
-    dayData._rawCols[col].push(item.str);
-  });
-
-  // ── 5. Converti _rawCols in menu strutturato ──────────────────────
-  schoolDays.forEach(day => {
-    const dayData = result[day.dateStr];
-    const raw = dayData._rawCols;
-
-    // Primo piatto
-    const primoText = raw.primo.join(' ');
-    if(primoText.trim()){
-      const {name, allergens} = extractNameAndAllergens(primoText);
-      if(name) dayData.pranzo.push({name, allergens, category:'primo'});
-    }
-
-    // Secondo piatto
-    const secondoText = raw.secondo.join(' ');
-    if(secondoText.trim()){
-      const {name, allergens} = extractNameAndAllergens(secondoText);
-      if(name) dayData.pranzo.push({name, allergens, category:'secondo'});
-    }
-
-    // Contorno
-    const contornoText = raw.contorno.join(' ');
-    if(contornoText.trim()){
-      const {name, allergens} = extractNameAndAllergens(contornoText);
-      if(name) dayData.pranzo.push({name, allergens, category:'contorno'});
-    }
-
-    // Merenda
-    const merendaText = raw.merenda.join(' ');
-    if(merendaText.trim()){
-      const {name, allergens} = extractNameAndAllergens(merendaText);
-      if(name) dayData.merenda.push({name, allergens});
-      else dayData.merenda.push({name:'Frutta 🍎', allergens:[]});
-    } else {
-      dayData.merenda.push({name:'Frutta 🍎', allergens:[]});
-    }
-
-    // Snack mattina
-    const snackText = raw.snack.join(' ');
-    if(snackText.trim()){
-      const {name, allergens} = extractNameAndAllergens(snackText);
-      const snackName = name
-        .replace(/snack\s*1\s*[-­]\s*/i,'')
-        .replace(/\bmattina\b/i,'')
-        .trim() || snackText.trim();
-      dayData.spuntino1.push({name: snackName || 'Frutta 🍎', allergens});
-    } else {
-      dayData.spuntino1.push({name:'Frutta fresca 🍎', allergens:[]});
-    }
-
-    // Pulisci campo temporaneo
-    delete dayData._rawCols;
-  });
-
-  return result;
+function createProfile() {
+  const input = document.getElementById('new-profile-name');
+  const name  = input.value.trim();
+  if (!name) { input.focus(); return; }
+  const profiles = getProfiles();
+  const id       = uid();
+  profiles.push({ id, name, avatarColor: AV_COLORS[profiles.length % AV_COLORS.length], createdAt: new Date().toISOString() });
+  saveProfiles(profiles);
+  input.value = '';
+  selectProfile(id);
 }
 
-function inferColumnBounds(items, colX) {
-  // Se abbiamo trovato tutti e 5 gli header X, li usiamo
-  // Altrimenti inferisco dai quantili di distribuzione X
-  const hasAll = colX.every(x => x !== null);
-  if(hasAll){
-    // Ordina per X e restituisce i boundary come [x_primo, x_secondo, x_contorno, x_merenda, x_snack]
-    const sorted = [...colX].sort((a,b)=>a-b);
-    return {
-      primo:    [sorted[0], sorted[1]],
-      secondo:  [sorted[1], sorted[2]],
-      contorno: [sorted[2], sorted[3]],
-      merenda:  [sorted[3], sorted[4]],
-      snack:    [sorted[4], 9999]
-    };
-  }
+document.getElementById('create-profile-btn').addEventListener('click', createProfile);
+document.getElementById('new-profile-name').addEventListener('keydown', e => { if (e.key === 'Enter') createProfile(); });
+document.getElementById('profile-switcher-btn').addEventListener('click', () => {
+  document.getElementById('profile-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display     = 'none';
+  renderProfileScreen();
+});
 
-  // Fallback: usa distribuzione degli X per trovare 5 cluster
-  // Escludi X molto piccoli (colonna giorni ~0-80)
-  const allX = items.map(i=>i.x).filter(x=>x>60).sort((a,b)=>a-b);
-  if(allX.length === 0) return getDefaultBounds();
+function startApp() {
+  const id = getActiveId();
+  if (!id) { showProfiles(); return; }
+  const profile = getProfiles().find(p => p.id === id);
+  if (!profile) { showProfiles(); return; }
 
-  const minX = allX[0];
-  const maxX = allX[allX.length-1];
-  const range = maxX - minX;
-  const step  = range / 5;
+  // Header
+  const av = document.getElementById('header-mini-av');
+  av.textContent = profile.name.charAt(0).toUpperCase();
+  av.className   = 'mini-av ' + profile.avatarColor;
+  document.getElementById('header-profile-name').textContent = profile.name;
 
-  return {
-    primo:    [minX,           minX + step],
-    secondo:  [minX + step,    minX + step*2],
-    contorno: [minX + step*2,  minX + step*3],
-    merenda:  [minX + step*3,  minX + step*4],
-    snack:    [minX + step*4,  9999]
-  };
+  document.getElementById('profile-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display     = 'block';
+
+  // Carica prodotti
+  products       = JSON.parse(localStorage.getItem(prodKey(id)) || '[]');
+  currentFilter  = 'all';
+  searchQuery    = '';
+  document.getElementById('search-input').value = '';
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+
+  // Campanella
+  const bellBtn = document.getElementById('notif-btn');
+  if (Notification.permission === 'granted') bellBtn.classList.add('bell-active');
+  else bellBtn.classList.remove('bell-active');
+
+  render();
+  scheduleNotifCheck();
 }
 
-function getDefaultBounds(){
-  // Bounds empirici per il PDF Elior/Ribo (larghezza ~595pt, margine ~40pt)
-  // Colonna giorni: 40-110
-  // Primo:   110-240
-  // Secondo: 240-360
-  // Contorno:360-450
-  // Merenda: 450-530
-  // Snack:   530-595
-  return {
-    primo:    [110, 240],
-    secondo:  [240, 360],
-    contorno: [360, 450],
-    merenda:  [450, 530],
-    snack:    [530, 9999]
-  };
+function showProfiles() {
+  document.getElementById('profile-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display     = 'none';
+  renderProfileScreen();
 }
 
-function getColumn(x, bounds){
-  if(x >= bounds.primo[0]    && x < bounds.primo[1])    return 'primo';
-  if(x >= bounds.secondo[0]  && x < bounds.secondo[1])  return 'secondo';
-  if(x >= bounds.contorno[0] && x < bounds.contorno[1]) return 'contorno';
-  if(x >= bounds.merenda[0]  && x < bounds.merenda[1])  return 'merenda';
-  if(x >= bounds.snack[0])                               return 'snack';
-  return null; // colonna giorni o fuori range
+// ══════════════════════════════════════════
+// DATI
+// ══════════════════════════════════════════
+let products      = [];
+let currentFilter = 'all';
+let searchQuery   = '';
+let editingId     = null;
+
+function save() {
+  const id = getActiveId();
+  if (id) localStorage.setItem(prodKey(id), JSON.stringify(products));
 }
 
-function extractNameAndAllergens(text){
-  // Il testo è tipo "Sedani Con Sugo Seppie e Merluzzo glutine,soia,senape,pesce,molluschi"
-  // Separa nome (Title Case o MAIUSC) dagli allergeni (minuscolo, lista separata da virgole)
-  const allergRe = /\b(?:glutine|soia|latte|uova|uovo|pesce|senape|sesamo|lupino|molluschi|crostacei|frutta a guscio|arachidi|sedano|solfiti)[,\s]*/gi;
+// ══════════════════════════════════════════
+// DATE UTILS
+// ══════════════════════════════════════════
+function today()      { const d = new Date(); d.setHours(0,0,0,0); return d; }
+function parseDate(s) { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+function daysLeft(s)  { return Math.ceil((parseDate(s) - today()) / 86400000); }
+function statusOf(p)  { const d = daysLeft(p.expiry); return d < 0 ? 'expired' : d <= 7 ? 'soon' : 'fresh'; }
+function formatDate(s){ const [y,m,d] = s.split('-'); return `${d}/${m}/${y}`; }
+function escHtml(s)   { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  // Trova primo match di allergene
-  const firstAllergMatch = text.search(/\b(?:glutine|soia|latte|uova|uovo|pesce|senape|sesamo|lupino|molluschi|crostacei|frutta a guscio|arachidi|sedano|solfiti)\b/i);
-
-  let namePart, allergPart;
-  if(firstAllergMatch > 0){
-    namePart  = text.slice(0, firstAllergMatch).trim();
-    allergPart = text.slice(firstAllergMatch);
-  } else {
-    namePart  = text;
-    allergPart = '';
-  }
-
-  // Pulisci nome
-  const name = namePart
-    .replace(/\*+/g,'')
-    .replace(/\.\./g,'')
-    .replace(/\bLt\s+\d+\b/g,'')
-    .replace(/\s+/g,' ')
-    .trim();
-
-  // Estrai allergeni
-  const allergens = extractAllergens(allergPart || text);
-
-  return { name: capitalizeFood(name), allergens };
+function badgeLabel(p) {
+  const d = daysLeft(p.expiry);
+  if (d < 0)  return `Scaduto ${Math.abs(d)}gg fa`;
+  if (d === 0) return 'Scade oggi!';
+  if (d === 1) return 'Scade domani';
+  if (d <= 7)  return `Scade in ${d}gg`;
+  return `${d} giorni`;
 }
+const badgeClass = s => ({expired:'badge-red', soon:'badge-amber', fresh:'badge-green'}[s] || 'badge-gray');
+const dotClass   = s => ({expired:'dot-red',   soon:'dot-amber',   fresh:'dot-green'}[s]   || 'dot-gray');
 
-function extractAllergens(text){
-  const found = [];
-  const sorted = [...ALLERGENS_LIST].sort((a,b)=>b.length-a.length);
-  sorted.forEach(a => {
-    const re = new RegExp(a.replace(/\s+/g,'\\s+'),'i');
-    if(re.test(text) && !found.includes(a)) found.push(a);
-  });
-  return found;
-}
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function render() {
+  let list = [...products];
+  if (currentFilter !== 'all') list = list.filter(p => statusOf(p) === currentFilter);
+  if (searchQuery) list = list.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  list.sort((a, b) => daysLeft(a.expiry) - daysLeft(b.expiry));
 
-function capitalizeFood(s){
-  return s
-    .toLowerCase()
-    .replace(/(?:^|\s)\S/g, c => c.toUpperCase())
-    .replace(/\b(Al|Di|Con|E|A|Da|In|Su|Per|Del|Della|Dello|Dei|Degli|Delle|Il|La|Lo|Le|Gli)\b/g, w=>w.toLowerCase())
-    .trim();
-}
+  document.getElementById('stat-expired').textContent = products.filter(p => statusOf(p) === 'expired').length;
+  document.getElementById('stat-soon').textContent    = products.filter(p => statusOf(p) === 'soon').length;
+  document.getElementById('stat-fresh').textContent   = products.filter(p => statusOf(p) === 'fresh').length;
+  document.getElementById('stat-total').textContent   = products.length;
 
-function buildDateStr(year, month, day){
-  if(day<1||day>31) return null;
-  try{
-    const d = new Date(year, month-1, day);
-    if(d.getMonth()!==month-1) return null;
-    return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-  }catch(e){return null;}
-}
-
-
-
-function buildPreview(parsed){
-  const keys = Object.keys(parsed).sort().slice(0,5);
-  let html = '';
-  keys.forEach(dateStr=>{
-    const d = new Date(dateStr+'T12:00:00');
-    const dayName = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'][d.getDay()];
-    const menu = parsed[dateStr];
-    html += `<div class="p-day">${dayName} ${d.getDate()}</div>`;
-    if(menu.pranzo && menu.pranzo.length){
-      html += `<div>🍽️ ${menu.pranzo.map(x=>x.name).join(' · ')}</div>`;
-    }
-  });
-  if(Object.keys(parsed).length>5) html += `<div style="color:#aaa;margin-top:6px">...e altri ${Object.keys(parsed).length-5} giorni</div>`;
-  return html;
-}
-
-// =====================================================================
-// PDF STATUS
-// =====================================================================
-function setPdfStatus(type, msg){
-  const el = document.getElementById('pdfStatus');
-  el.className = `pdf-status ${type}`;
-  el.textContent = msg;
-}
-
-function updatePdfStatus(){
-  const ym = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
-  const m = getMonthMenu(ym);
-  const clearBtn = document.getElementById('btnClearMenu');
-  if(m){
-    const cnt = Object.keys(m).length;
-    setPdfStatus('ok',`✅ ${cnt} giorni caricati`);
-    if(clearBtn) clearBtn.style.display = 'block';
-  } else {
-    setPdfStatus('none','📄 Nessun menù caricato');
-    if(clearBtn) clearBtn.style.display = 'none';
-  }
-}
-
-function clearCurrentMonthMenu(){
-  const ym = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
-  const monthName = MONTH_NAMES_IT[currentMonth];
-  showModal({
-    title: '🗑️ Cancella menù ' + monthName + '?',
-    body: 'Verranno rimossi tutti i piatti del menù scolastico di <b>' + monthName + ' ' + currentYear + '</b> caricati da PDF.<br><br>' +
-          '⚠️ I dati che hai già inserito (cosa hai mangiato, sintomi, note) <b>non vengono cancellati</b>.',
-    buttons:[
-      {label:'✅ Sì, cancella', action: ()=>{ 
-        delete appState.menus[ym];
-        saveState();
-        closeModal();
-        selectedDate = null;
-        document.getElementById('dayDetail').innerHTML = '';
-        updatePdfStatus();
-        renderCalendar();
-        setPdfStatus('none','📄 Menù cancellato — carica il nuovo PDF');
-      }, cls:'primary'},
-      {label:'Annulla', action:'close', cls:'secondary'}
-    ]
-  });
-}
-
-// =====================================================================
-// MODAL
-// =====================================================================
-function showModal({title,body,preview,buttons}){
-  const box = document.getElementById('modalBox');
-  let btnsHtml = buttons.map(b=>`<button class="modal-btn ${b.cls}" onclick="handleModalBtn(${typeof b.action==='string'?`'${b.action}'`:`modalActions[${modalActions.push(b.action)-1}]`})">${b.label}</button>`).join('');
-
-  box.innerHTML = `
-    <h2>${title}</h2>
-    <p>${body}</p>
-    ${preview?`<div class="parsed-preview">${preview}</div>`:''}
-    <div class="modal-btns">${btnsHtml}</div>
-  `;
-  document.getElementById('modalBg').style.display='flex';
-}
-
-const modalActions = [];
-function handleModalBtn(action){
-  if(action==='close'||typeof action==='string') closeModal();
-  else { action(); }
-}
-function closeModal(){
-  document.getElementById('modalBg').style.display='none';
-  modalActions.length=0;
-}
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
-
-// =====================================================================
-// CSV DOWNLOAD
-// =====================================================================
-
-// =====================================================================
-// BACKUP & RESTORE
-// =====================================================================
-function exportBackup(){
-  const profiles = loadProfiles();
-  const backup = {
-    version: 1,
-    date: new Date().toISOString(),
-    profiles: profiles,
-    data: {}
-  };
-  // Export data for all profiles
-  profiles.forEach(p => {
-    backup.data[p.id] = loadUserState(p.id);
-  });
-  const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  const date = new Date().toISOString().slice(0,10);
-  a.href = url; a.download = `diario-backup-${date}.json`; a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importBackup(event){
-  const file = event.target.files[0];
-  event.target.value = '';
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try{
-      const backup = JSON.parse(e.target.result);
-      if(!backup.version || !backup.profiles || !backup.data)
-        throw new Error('File non valido');
-
-      showModal({
-        title: '📂 Ripristina backup',
-        body: `Trovati <b>${backup.profiles.length} profili</b> dal <b>${backup.date.slice(0,10)}</b>.<br><br>
-               ⚠️ <b>Attenzione:</b> i dati attuali verranno sostituiti con quelli del backup.<br>
-               Profili: ${backup.profiles.map(p=>p.emoji+' '+p.name).join(', ')}`,
-        buttons:[
-          {label:'✅ Ripristina', action:()=>{
-            // Restore profiles
-            saveProfiles(backup.profiles);
-            // Restore each user's data
-            Object.entries(backup.data).forEach(([uid, state]) => {
-              saveUserState(uid, state);
-            });
-            closeModal();
-            // Force re-login
-            currentUser = null;
-            appState = {days:{}, menus:{}};
-            document.getElementById('loginScreen').style.display = 'flex';
-            const ub = document.getElementById('userBar');
-            if(ub) ub.remove();
-            const as = document.getElementById('adminSwitcher');
-            if(as) as.remove();
-            showProfiles();
-          }, cls:'primary'},
-          {label:'Annulla', action:'close', cls:'secondary'}
-        ]
-      });
-    } catch(err){
-      showModal({
-        title:'❌ Errore',
-        body:`Il file non è un backup valido.<br><code>${err.message}</code>`,
-        buttons:[{label:'Chiudi', action:'close', cls:'secondary'}]
-      });
-    }
-  };
-  reader.readAsText(file);
-}
-
-function downloadCSV(){
-  let csv = '\uFEFF';
-  csv += 'Data,Giorno,Pasto,Alimento,Ho mangiato,Manuale,Allergeni,Sintomi,Note\n';
-
-  // Get all months that have data
-  const allDates = new Set([
-    ...Object.keys(appState.days),
-    ...Object.values(appState.menus).flatMap(m=>Object.keys(m))
-  ]);
-
-  Array.from(allDates).sort().forEach(dateStr=>{
-    const dateObj = new Date(dateStr+'T12:00:00');
-    const dayNames = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
-    const dayName = dayNames[dateObj.getDay()];
-    const ym = dateStr.slice(0,7);
-    const menu = getMonthMenu(ym);
-    const dayMenu = menu&&menu[dateStr];
-    const ds = getDayState(dateStr);
-
-    const activeSymptoms = SYMPTOMS.filter(s=>hasSymptom(ds,s.id)).map(s=>s.label).join('; ');
-
-    MEAL_CONFIG.forEach(mc=>{
-      const schoolItems = dayMenu ? (dayMenu[mc.key]||[]) : [];
-      const manualItems = (ds.manualItems&&ds.manualItems[mc.key]) || [];
-
-      schoolItems.forEach((item,idx)=>{
-        const key = `${mc.key}_${idx}`;
-        const st = ds.eaten[key]||'non indicato';
-        const eaten = st==='eaten'?'Sì ✓':st==='not-eaten'?'No ✗':'—';
-        csv += `"${dateStr}","${dayName}","${mc.label.replace(/[^\w\s]/g,'')}","${item.name}","${eaten}","No","${(item.allergens||[]).join('; ')}","${activeSymptoms}","${(ds.notes||'').replace(/"/g,'""')}"\n`;
-      });
-
-      manualItems.forEach((item,idx)=>{
-        const key = `manual_${mc.key}_${idx}`;
-        const st = ds.eaten[key]||'non indicato';
-        const eaten = st==='eaten'?'Sì ✓':st==='not-eaten'?'No ✗':'—';
-        csv += `"${dateStr}","${dayName}","${mc.label.replace(/[^\w\s]/g,'')}","${item.name}","${eaten}","Sì (manuale)","","${activeSymptoms}","${(ds.notes||'').replace(/"/g,'""')}"\n`;
-      });
-    });
-  });
-
-  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href=url; a.download='diario-alimentare.csv'; a.click();
-  URL.revokeObjectURL(url);
-}
-
-// =====================================================================
-// ANALYSIS ENGINE
-// =====================================================================
-let analysisVisible = false;
-let activeSymFilter = 'all'; // 'all' or symptom id
-
-function toggleAnalysis(){
-  analysisVisible = !analysisVisible;
-  const panel = document.getElementById('analysisPanel');
-  const btn   = document.getElementById('btnAnalysis');
-  panel.style.display = analysisVisible ? 'block' : 'none';
-  btn.style.background = analysisVisible
-    ? 'linear-gradient(135deg,#6C5CE7,#4834D4)'
-    : 'linear-gradient(135deg,#A29BFE,#6C5CE7)';
-  if(analysisVisible){
-    buildSymFilterRow();
-    renderAnalysis();
-    panel.scrollIntoView({behavior:'smooth', block:'start'});
-  }
-}
-
-function buildSymFilterRow(){
-  const row = document.getElementById('symFilterRow');
-  row.innerHTML = '';
-  // ALL button
-  const allBtn = document.createElement('button');
-  allBtn.className = `sym-filter-btn all ${activeSymFilter==='all'?'active':''}`;
-  allBtn.innerHTML = '📊 Tutti i sintomi';
-  allBtn.onclick = () => { activeSymFilter='all'; buildSymFilterRow(); renderAnalysis(); };
-  row.appendChild(allBtn);
-  // Per-symptom buttons
-  SYMPTOMS.forEach(sym => {
-    const btn = document.createElement('button');
-    btn.className = `sym-filter-btn ${activeSymFilter===sym.id?'active':''}`;
-    btn.innerHTML = `${sym.emoji} ${sym.label}`;
-    btn.onclick = () => { activeSymFilter=sym.id; buildSymFilterRow(); renderAnalysis(); };
-    row.appendChild(btn);
-  });
-}
-
-function renderAnalysis(){
-  const container = document.getElementById('analysisContent');
-
-  // Collect all days that have symptom data
-  const allDayKeys = Object.keys(appState.days).sort();
-
-  // Filter days that have at least one symptom (or the selected symptom)
-  const symptomDays = allDayKeys.filter(dateStr => {
-    const ds = appState.days[dateStr];
-    if(!ds || !ds.symptoms) return false;
-    if(activeSymFilter === 'all'){
-      return SYMPTOMS.some(s => hasSymptom(ds,s.id));
-    } else {
-      return hasSymptom(ds,activeSymFilter);
-    }
-  });
-
-  const totalDaysTracked = allDayKeys.filter(dateStr => {
-    const ds = appState.days[dateStr];
-    return ds && (Object.keys(ds.eaten||{}).length > 0 || Object.values(ds.symptoms||{}).some(Boolean));
-  }).length;
-
-  if(totalDaysTracked === 0){
-    container.innerHTML = `
-      <div class="analysis-empty">
-        <div style="font-size:3rem;margin-bottom:12px">📓</div>
-        Non ci sono ancora abbastanza dati per l'analisi.<br>
-        <span style="font-size:1rem;color:#aaa">Compila il diario per qualche giorno e torna qui!</span>
-      </div>`;
+  const container = document.getElementById('products-list');
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">🛒</div>
+      <p>${products.length === 0 ? 'Nessun prodotto ancora.' : 'Nessun risultato.'}</p>
+      <small>${products.length === 0 ? 'Aggiungi il tuo primo prodotto con + Aggiungi.' : 'Prova a cambiare filtro.'}</small>
+    </div>`;
     return;
   }
 
-  // ---- STATS ----
-  const totalSympDays = symptomDays.length;
-  const symCounts = {};
-  SYMPTOMS.forEach(s => { symCounts[s.id] = 0; });
-  allDayKeys.forEach(dateStr => {
-    const ds = appState.days[dateStr];
-    if(!ds) return;
-    SYMPTOMS.forEach(s => { if(hasSymptom(ds,s.id)) symCounts[s.id]++; });
-  });
-  const worstSym = SYMPTOMS.reduce((a,b) => symCounts[a.id]>=symCounts[b.id]?a:b);
-
-  // ---- FOOD CORRELATION ----
-  // For each food eaten on a symptom day, count occurrences
-  const foodSymMap = {}; // foodName -> { total: N, symDays: N, symptoms: {symId: count} }
-
-  allDayKeys.forEach(dateStr => {
-    const ds = appState.days[dateStr];
-    if(!ds) return;
-    const hasTargetSym = activeSymFilter==='all'
-      ? SYMPTOMS.some(s => hasSymptom(ds,s.id))
-      : (hasSymptom(ds,activeSymFilter));
-
-    const eatenFoods = getEatenFoodsForDay(dateStr);
-    eatenFoods.forEach(foodName => {
-      if(!foodSymMap[foodName]) foodSymMap[foodName] = { total:0, symDays:0, symptoms:{} };
-      foodSymMap[foodName].total++;
-      if(hasTargetSym){
-        foodSymMap[foodName].symDays++;
-        SYMPTOMS.forEach(s => {
-          if(hasSymptom(ds,s.id)){
-            foodSymMap[foodName].symptoms[s.id] = (foodSymMap[foodName].symptoms[s.id]||0)+1;
-          }
-        });
-      }
-    });
-  });
-
-  // Sort foods by symDays desc, then by correlation ratio
-  const sortedFoods = Object.entries(foodSymMap)
-    .filter(([,v]) => v.symDays > 0)
-    .sort(([,a],[,b]) => {
-      const ratioA = a.total>0 ? a.symDays/a.total : 0;
-      const ratioB = b.total>0 ? b.symDays/b.total : 0;
-      if(b.symDays !== a.symDays) return b.symDays - a.symDays;
-      return ratioB - ratioA;
-    });
-
-  // ---- ALLERGEN CORRELATION ----
-  const allergMap = {}; // allergenName -> { total, symDays }
-  allDayKeys.forEach(dateStr => {
-    const ds = appState.days[dateStr];
-    if(!ds) return;
-    const hasTargetSym = activeSymFilter==='all'
-      ? SYMPTOMS.some(s => hasSymptom(ds,s.id))
-      : (hasSymptom(ds,activeSymFilter));
-
-    const allergens = getAllergensEatenForDay(dateStr);
-    allergens.forEach(a => {
-      if(!allergMap[a]) allergMap[a] = { total:0, symDays:0 };
-      allergMap[a].total++;
-      if(hasTargetSym) allergMap[a].symDays++;
-    });
-  });
-
-  const sortedAllergens = Object.entries(allergMap)
-    .filter(([,v]) => v.total > 0)
-    .sort(([,a],[,b]) => b.symDays - a.symDays || b.total - a.total);
-
-  const maxAllegSymDays = sortedAllergens.length ? sortedAllergens[0][1].symDays : 1;
-
-  // ---- BUILD HTML ----
+  const groups = [
+    { key: 'expired', label: '⚠️ Scaduti o in scadenza oggi' },
+    { key: 'soon',    label: '🕐 In scadenza (entro 7 giorni)' },
+    { key: 'fresh',   label: '✅ Freschi' },
+  ];
   let html = '';
-
-  // Stats overview
-  html += `<div class="stats-row">
-    <div class="stat-card">
-      <span class="stat-emoji">📅</span>
-      <div class="stat-num">${totalDaysTracked}</div>
-      <div class="stat-label">giorni registrati</div>
-    </div>
-    <div class="stat-card ${totalSympDays>0?'alert':''}">
-      <span class="stat-emoji">⚠️</span>
-      <div class="stat-num">${totalSympDays}</div>
-      <div class="stat-label">giorni con sintomi</div>
-    </div>`;
-
-  if(activeSymFilter==='all'){
-    html += `<div class="stat-card alert">
-      <span class="stat-emoji">${worstSym.emoji}</span>
-      <div class="stat-num">${symCounts[worstSym.id]}</div>
-      <div class="stat-label">più frequente: ${worstSym.label}</div>
-    </div>`;
-  } else {
-    const fSym = SYMPTOMS.find(s=>s.id===activeSymFilter);
-    html += `<div class="stat-card alert">
-      <span class="stat-emoji">${fSym.emoji}</span>
-      <div class="stat-num">${symCounts[fSym.id]}</div>
-      <div class="stat-label">giorni con ${fSym.label}</div>
-    </div>`;
-  }
-
-  html += `<div class="stat-card">
-      <span class="stat-emoji">🍴</span>
-      <div class="stat-num">${sortedFoods.length}</div>
-      <div class="stat-label">alimenti sospetti</div>
-    </div>
-  </div>`;
-
-  // Insight box
-  if(totalSympDays > 0 && sortedFoods.length > 0){
-    const topFood = sortedFoods[0];
-    const ratio   = topFood[1].total > 0 ? Math.round(topFood[1].symDays/topFood[1].total*100) : 0;
-    html += `
-      <div class="insight-box">
-        <div class="insight-icon">💡</div>
-        <div class="insight-text">
-          L'alimento più sospetto è <strong>${topFood[0]}</strong>: 
-          è stato mangiato <strong>${topFood[1].total} volt${topFood[1].total===1?'a':'e'}</strong> 
-          e in <strong>${topFood[1].symDays}</strong> di questi giorni c'erano sintomi 
-          (<strong>${ratio}%</strong> delle volte).
-          ${ratio>=75 ? ' 🚨 Questo è un segnale importante da condividere col medico!' : ratio>=50 ? ' ⚠️ Vale la pena tenerlo d\'occhio.' : ' Continua a monitorare.'}
+  for (const g of groups) {
+    const items = list.filter(p => statusOf(p) === g.key);
+    if (!items.length) continue;
+    html += `<div class="section-title">${g.label}</div><div class="products-grid">`;
+    for (const p of items) {
+      const st = statusOf(p);
+      html += `<div class="product-card">
+        <div class="dot ${dotClass(st)}"></div>
+        <div class="product-info">
+          <div class="product-name">${escHtml(p.name)}</div>
+          <div class="product-meta"><span class="cat-tag">${escHtml(p.category)}</span>${p.notes ? ' · ' + escHtml(p.notes) : ''} · Scadenza: ${formatDate(p.expiry)}</div>
+        </div>
+        <span class="product-badge ${badgeClass(st)}">${badgeLabel(p)}</span>
+        <div class="product-actions">
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="editProduct('${p.id}')" title="Modifica">✏️</button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="deleteProduct('${p.id}')" title="Elimina">🗑</button>
         </div>
       </div>`;
+    }
+    html += '</div>';
   }
-
-  if(totalSympDays === 0){
-    html += `<div class="analysis-empty">
-      <div style="font-size:2.5rem;margin-bottom:10px">🎉</div>
-      ${activeSymFilter==='all' ? 'Nessun giorno con sintomi registrato! Ottimo!' : `Nessun giorno con "${SYMPTOMS.find(s=>s.id===activeSymFilter)?.label}" registrato!`}
-    </div>`;
-    container.innerHTML = html;
-    return;
-  }
-
-  // Food correlations
-  html += `<div class="an-section">
-    <div class="an-section-title">🍽️ Alimenti mangiati nei giorni con sintomi</div>`;
-
-  if(sortedFoods.length === 0){
-    html += `<div class="no-data-msg">Nessun alimento registrato come "mangiato" nei giorni con sintomi.</div>`;
-  } else {
-    const maxSymDays = sortedFoods[0][1].symDays || 1;
-    html += `<div class="food-corr-list">`;
-    sortedFoods.slice(0,20).forEach(([name, data]) => {
-      const ratio   = data.total>0 ? data.symDays/data.total : 0;
-      const riskPct = Math.round(data.symDays/maxSymDays*100);
-      const level   = ratio>=0.75?'high':ratio>=0.4?'medium':'low';
-      const activeSyms = SYMPTOMS.filter(s=>data.symptoms[s.id]>0);
-      html += `
-        <div class="food-corr-row ${level}">
-          <div class="fcr-name">${name}</div>
-          <div class="fcr-syms">${activeSyms.map(s=>`<span class="fcr-sym-tag">${s.emoji} ${s.label}</span>`).join('')}</div>
-          <div class="risk-bar-wrap"><div class="risk-bar" style="width:${riskPct}%"></div></div>
-          <div class="fcr-count ${data.symDays>=3?'danger':''}" title="${data.symDays} giorni con sintomi su ${data.total} totali">
-            ${data.symDays}/${data.total}
-          </div>
-        </div>`;
-    });
-    html += `</div>
-      <div style="font-family:'Patrick Hand',cursive;font-size:.8rem;color:#aaa;margin-top:8px;text-align:right">
-        Il numero mostra: giorni con sintomi / totale giorni in cui hai mangiato quell'alimento
-      </div>`;
-  }
-  html += `</div>`;
-
-  // Days with symptoms
-  html += `<div class="an-section">
-    <div class="an-section-title">📅 Giorni con sintomi — cronologia</div>
-    <div class="day-sym-list">`;
-
-  if(symptomDays.length === 0){
-    html += `<div class="no-data-msg">Nessun giorno con sintomi trovato.</div>`;
-  } else {
-    [...symptomDays].reverse().forEach(dateStr => {
-      const ds = appState.days[dateStr];
-      const dateObj = new Date(dateStr+'T12:00:00');
-      const dayNames = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
-      const dayName  = dayNames[dateObj.getDay()];
-      const dayNum   = dateObj.getDate();
-      const monthShort = MONTH_NAMES_IT[dateObj.getMonth()].slice(0,3);
-      const activeSyms = SYMPTOMS.filter(s => hasSymptom(ds,s.id));
-      const eatenFoods = getEatenFoodsForDay(dateStr).slice(0,6);
-
-      html += `
-        <div class="day-sym-row" onclick="jumpToDay('${dateStr}')">
-          <div>
-            <div class="dsr-date">${dayName} ${dayNum} ${monthShort}</div>
-            ${ds.notes ? `<div style="font-family:'Patrick Hand',cursive;font-size:.75rem;color:#aaa;margin-top:2px;font-style:italic">"${ds.notes.slice(0,40)}${ds.notes.length>40?'…':''}"</div>`:''}
-          </div>
-          <div style="flex:1">
-            <div class="dsr-syms">${activeSyms.map(s=>`<span class="dsr-sym-pill">${s.emoji} ${s.label}</span>`).join('')}</div>
-            ${eatenFoods.length ? `<div class="dsr-foods">🍴 ${eatenFoods.join(' · ')}${eatenFoods.length===6?'…':''}</div>` : ''}
-          </div>
-          <div style="font-size:1.2rem;flex-shrink:0">›</div>
-        </div>`;
-    });
-  }
-  html += `</div></div>`;
-
-  // Allergen heatmap
-  if(sortedAllergens.length > 0){
-    html += `<div class="an-section">
-      <div class="an-section-title">⚠️ Allergeni presenti nei giorni con sintomi</div>
-      <div class="allerg-grid">`;
-
-    sortedAllergens.forEach(([name, data]) => {
-      const ratio   = data.total>0 ? data.symDays/data.total : 0;
-      const barPct  = Math.round(data.symDays/maxAllegSymDays*100);
-      const level   = ratio>=0.6?'danger':ratio>=0.35?'medium':'';
-      const barColor= ratio>=0.6?'#F46B6B':ratio>=0.35?'#FF9F43':'#A0C4FF';
-      html += `
-        <div class="allerg-card ${level}">
-          <div class="allerg-name">${name}</div>
-          <div class="allerg-bar-wrap"><div class="allerg-bar" style="width:${barPct}%;background:${barColor}"></div></div>
-          <div class="allerg-stat">${data.symDays} sint. / ${data.total} tot.</div>
-        </div>`;
-    });
-    html += `</div>
-      <div style="font-family:'Patrick Hand',cursive;font-size:.8rem;color:#aaa;margin-top:10px">
-        ⚠️ Questi dati sono indicativi. Consultare sempre un medico o allergologo per diagnosi accurate.
-      </div>
-    </div>`;
-  }
-
   container.innerHTML = html;
 }
 
-// Navigate back to a specific day from analysis
-function jumpToDay(dateStr){
-  const d = new Date(dateStr+'T12:00:00');
-  currentYear  = d.getFullYear();
-  currentMonth = d.getMonth();
-  selectedDate = dateStr;
-  // Hide analysis panel
-  analysisVisible = false;
-  document.getElementById('analysisPanel').style.display = 'none';
-  updatePdfStatus();
-  renderCalendar();
-  renderDayDetail();
-  // Scroll to notebook
-  document.querySelector('.notebook').scrollIntoView({behavior:'smooth', block:'start'});
+// ══════════════════════════════════════════
+// ADD / EDIT / DELETE
+// ══════════════════════════════════════════
+function openAddModal(prefill = {}, prefilledDate = null) {
+  editingId = prefill.id || null;
+  document.getElementById('modal-title').textContent  = editingId ? 'Modifica prodotto' : 'Aggiungi prodotto';
+  document.getElementById('input-name').value         = prefill.name     || '';
+  document.getElementById('input-date').value         = prefilledDate || prefill.expiry || '';
+  document.getElementById('input-notes').value        = prefill.notes    || '';
+  document.getElementById('input-category').value     = prefill.category || 'Altro';
+  document.getElementById('add-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('input-name').focus(), 60);
 }
 
-// Get list of food names eaten on a day (school + manual)
-function getEatenFoodsForDay(dateStr){
-  const ds = getDayState(dateStr);
-  const ym = dateStr.slice(0,7);
-  const menu = getMonthMenu(ym);
-  const dayMenu = menu && menu[dateStr];
-  const foods = [];
+function closeAddModal() {
+  document.getElementById('add-modal').classList.add('hidden');
+  editingId = null;
+}
 
-  MEAL_CONFIG.forEach(mc => {
-    const schoolItems = dayMenu ? (dayMenu[mc.key]||[]) : [];
-    schoolItems.forEach((item,idx) => {
-      const key = `${mc.key}_${idx}`;
-      if(ds.eaten[key]==='eaten') foods.push(item.name);
-    });
-    const manualItems = (ds.manualItems&&ds.manualItems[mc.key]) || [];
-    manualItems.forEach((item,idx) => {
-      const key = `manual_${mc.key}_${idx}`;
-      if(ds.eaten[key]==='eaten') foods.push(item.name);
-    });
+function saveProduct() {
+  const name     = document.getElementById('input-name').value.trim();
+  const expiry   = document.getElementById('input-date').value;
+  const category = document.getElementById('input-category').value;
+  const notes    = document.getElementById('input-notes').value.trim();
+  if (!name || !expiry) { showBanner('warning', 'Campi mancanti', 'Inserisci nome e data di scadenza.'); return; }
+  if (editingId) {
+    const idx = products.findIndex(p => p.id === editingId);
+    if (idx > -1) products[idx] = { ...products[idx], name, expiry, category, notes };
+  } else {
+    products.push({ id: uid(), name, expiry, category, notes, addedOn: new Date().toISOString() });
+  }
+  save(); closeAddModal(); render();
+}
+
+window.editProduct   = id => { const p = products.find(p => p.id === id); if (p) openAddModal(p); };
+window.deleteProduct = id => {
+  if (!confirm('Eliminare questo prodotto?')) return;
+  products = products.filter(p => p.id !== id);
+  save(); render();
+};
+
+// Date chips
+document.querySelectorAll('.date-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const d = new Date();
+    d.setDate(d.getDate() + parseInt(chip.dataset.days));
+    document.getElementById('input-date').value = d.toISOString().split('T')[0];
   });
-  return foods;
+});
+
+document.getElementById('add-btn').addEventListener('click', () => openAddModal());
+document.getElementById('close-add-modal').addEventListener('click', closeAddModal);
+document.getElementById('cancel-add').addEventListener('click', closeAddModal);
+document.getElementById('save-product').addEventListener('click', saveProduct);
+document.getElementById('add-modal').addEventListener('click', e => { if (e.target === document.getElementById('add-modal')) closeAddModal(); });
+document.getElementById('add-modal').addEventListener('keydown', e => { if (e.key === 'Enter') saveProduct(); });
+
+// ══════════════════════════════════════════
+// SEARCH & FILTER
+// ══════════════════════════════════════════
+document.getElementById('search-input').addEventListener('input', e => { searchQuery = e.target.value; render(); });
+document.querySelectorAll('.filter-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+// ══════════════════════════════════════════
+// OCR — Tesseract.js (lazy load)
+// ══════════════════════════════════════════
+let tesseractLoaded = false;
+
+async function loadTesseract() {
+  if (tesseractLoaded) return;
+  await new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src     = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload  = res;
+    s.onerror = rej;
+    document.head.appendChild(s);
+  });
+  tesseractLoaded = true;
 }
 
-// Get list of allergens from eaten foods on a day
-function getAllergensEatenForDay(dateStr){
-  const ds = getDayState(dateStr);
-  const ym = dateStr.slice(0,7);
-  const menu = getMonthMenu(ym);
-  const dayMenu = menu && menu[dateStr];
-  const allergens = new Set();
+// Ridimensiona l'immagine prima dell'OCR (max 1200px → ~3x più veloce)
+function resizeImageBlob(file, maxPx = 1200) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxPx || h > maxPx) {
+        if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
+        else        { w = Math.round(w * maxPx / h); h = maxPx; }
+      }
+      const canvas = document.getElementById('ocr-canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(b => resolve(b), 'image/jpeg', 0.90);
+    };
+    img.src = url;
+  });
+}
 
-  MEAL_CONFIG.forEach(mc => {
-    const schoolItems = dayMenu ? (dayMenu[mc.key]||[]) : [];
-    schoolItems.forEach((item,idx) => {
-      const key = `${mc.key}_${idx}`;
-      if(ds.eaten[key]==='eaten' && item.allergens){
-        item.allergens.forEach(a => allergens.add(a));
+function extractDates(rawText) {
+  // Correggi OCR comune: O→0, l/I→1
+  const t = rawText.replace(/[oO]/g, '0').replace(/\bI\b/g, '1').replace(/l(?=\d)/g, '1');
+  const found = new Set();
+  const results = [];
+  const now = new Date();
+
+  function tryAdd(y, m, d) {
+    if (m < 1 || m > 12 || d < 1 || d > 31) return;
+    if (y < 2020 || y > 2035) return;
+    const key = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if (found.has(key)) return;
+    const dt = new Date(y, m - 1, d);
+    const diff = (dt - now) / 86400000;
+    if (diff < -365 || diff > 365 * 8) return;
+    found.add(key);
+    results.push(key);
+  }
+
+  // DD/MM/YYYY  DD.MM.YYYY  DD-MM-YYYY
+  for (const m of t.matchAll(/\b(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})\b/g)) {
+    let [,d,mo,y] = m.map(Number);
+    if (y < 100) y += (y < 50 ? 2000 : 1900);
+    tryAdd(y, mo, d);
+  }
+  // MM/YYYY  MM.YYYY  (senza giorno → ultimo del mese)
+  for (const m of t.matchAll(/\b(\d{1,2})[\/.](\d{4})\b/g)) {
+    const [,mo,y] = m.map(Number);
+    tryAdd(y, mo, new Date(y, mo, 0).getDate());
+  }
+  // YYYY-MM-DD
+  for (const m of t.matchAll(/\b(\d{4})-(\d{2})-(\d{2})\b/g)) {
+    const [,y,mo,d] = m.map(Number);
+    tryAdd(y, mo, d);
+  }
+  // Keyword + data: EXP/USE BY/BEST BEFORE/TMC/DA CONS + MM/YY o MM/YYYY
+  for (const m of t.matchAll(/(?:EXP|USE\s*BY|BEST\s*BY|BEST\s*BEFORE|TMC|DA\s*CONS)[^\d]{0,6}(\d{1,2})[\/.\-\s](\d{2,4})/gi)) {
+    let [,mo,y] = m.map((x,i) => i > 0 ? Number(x) : x);
+    if (y < 100) y += (y < 50 ? 2000 : 1900);
+    tryAdd(y, mo, new Date(y, mo, 0).getDate());
+  }
+
+  return results.sort();
+}
+
+function ocrStep(step) {
+  ['upload','analyzing','results'].forEach(s =>
+    document.getElementById(`ocr-step-${s}`).style.display = (s === step ? 'block' : 'none'));
+}
+
+async function runOcr(file) {
+  ocrStep('analyzing');
+  const statusEl   = document.getElementById('ocr-status');
+  const progressEl = document.getElementById('ocr-progress-bar');
+  statusEl.textContent   = 'Caricamento motore OCR…';
+  progressEl.style.width = '5%';
+
+  try {
+    await loadTesseract();
+    progressEl.style.width = '20%';
+    statusEl.textContent   = 'Ottimizzazione immagine…';
+
+    const blob    = await resizeImageBlob(file);
+    const blobUrl = URL.createObjectURL(blob);
+    document.getElementById('ocr-preview-img').src = blobUrl;
+    document.getElementById('ocr-result-img').src  = blobUrl;
+
+    progressEl.style.width = '35%';
+    statusEl.textContent   = 'Riconoscimento testo…';
+
+    const result = await Tesseract.recognize(blob, 'ita+eng', {
+      logger: msg => {
+        if (msg.status === 'recognizing text') {
+          progressEl.style.width = (35 + Math.round(msg.progress * 55)) + '%';
+        }
       }
     });
+
+    progressEl.style.width = '100%';
+    URL.revokeObjectURL(blobUrl);
+
+    const dates = extractDates(result.data.text);
+    ocrStep('results');
+
+    const listEl  = document.getElementById('ocr-results-list');
+    const noResEl = document.getElementById('ocr-no-results');
+
+    if (!dates.length) {
+      listEl.innerHTML  = '';
+      noResEl.style.display = 'block';
+    } else {
+      noResEl.style.display = 'none';
+      listEl.innerHTML = dates.map(d => {
+        const [y, m, day] = d.split('-').map(Number);
+        const dl    = Math.ceil((new Date(y, m-1, day) - new Date()) / 86400000);
+        const badge = dl < 0 ? '🔴' : dl <= 7 ? '🟡' : '🟢';
+        // Formato leggibile
+        const label = `${String(day).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`;
+        const stato = dl < 0 ? 'Già scaduta' : dl === 0 ? 'Scade oggi' : dl === 1 ? 'Domani' : `tra ${dl} giorni`;
+        return `<button class="ocr-result-chip" onclick="pickOcrDate('${d}')">
+          <span class="chip-date">${badge} ${label}</span>
+          <span class="chip-fmt">${stato}</span>
+        </button>`;
+      }).join('');
+    }
+  } catch (err) {
+    statusEl.textContent   = '❌ ' + err.message;
+    progressEl.style.width = '0%';
+  }
+}
+
+window.pickOcrDate = function(dateStr) {
+  closeOcrModal();
+  openAddModal({}, dateStr);
+};
+
+function openOcrModal() {
+  ocrStep('upload');
+  document.getElementById('ocr-file-input').value = '';
+  document.getElementById('ocr-modal').classList.remove('hidden');
+}
+function closeOcrModal() { document.getElementById('ocr-modal').classList.add('hidden'); }
+function resetOcr()      { ocrStep('upload'); document.getElementById('ocr-file-input').value = ''; }
+
+document.getElementById('ocr-btn').addEventListener('click', openOcrModal);
+document.getElementById('close-ocr-modal').addEventListener('click', closeOcrModal);
+document.getElementById('ocr-modal').addEventListener('click', e => { if (e.target === document.getElementById('ocr-modal')) closeOcrModal(); });
+document.getElementById('ocr-retry-btn').addEventListener('click', resetOcr);
+document.getElementById('ocr-retry2-btn').addEventListener('click', resetOcr);
+document.getElementById('ocr-manual-btn').addEventListener('click', () => { closeOcrModal(); openAddModal(); });
+
+document.getElementById('ocr-file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  runOcr(file);
+});
+
+// Drag & drop
+const dropEl = document.getElementById('ocr-drop');
+dropEl.addEventListener('dragover',  e => { e.preventDefault(); dropEl.classList.add('drag-over'); });
+dropEl.addEventListener('dragleave', ()  => dropEl.classList.remove('drag-over'));
+dropEl.addEventListener('drop', e => {
+  e.preventDefault(); dropEl.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) runOcr(f);
+});
+
+// ══════════════════════════════════════════
+// NOTIFICHE
+// ══════════════════════════════════════════
+let notifTimer = null;
+
+async function requestAndNotify() {
+  const bell = document.getElementById('notif-btn');
+  if (Notification.permission === 'granted') {
+    checkAndNotify(true);
+  } else if (Notification.permission !== 'denied') {
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') { bell.classList.add('bell-active'); checkAndNotify(true); }
+    else showBanner('warning', 'Notifiche bloccate', 'Abilita le notifiche nelle impostazioni del browser.');
+  } else {
+    showBanner('warning', 'Notifiche bloccate', 'Abilita le notifiche nelle impostazioni del browser.');
+  }
+}
+
+function checkAndNotify(force = false) {
+  const expired = products.filter(p => daysLeft(p.expiry) <= 0);
+  const soon    = products.filter(p => { const d = daysLeft(p.expiry); return d > 0 && d <= 3; });
+  if (expired.length) sendNotif('⚠️ Prodotti scaduti', `${expired.length} scadut${expired.length===1?'o':'i'}: ${expired.map(p=>p.name).slice(0,3).join(', ')}`);
+  if (soon.length)    sendNotif('🕐 In scadenza presto', soon.map(p => p.name + ' (' + daysLeft(p.expiry) + 'gg)').slice(0,3).join(', '));
+  if (force && !expired.length && !soon.length) showBanner('success', 'Tutto fresco! ✅', 'Nessun prodotto in scadenza nei prossimi 3 giorni.');
+}
+
+function sendNotif(title, body) {
+  if (Notification.permission === 'granted') new Notification(title, { body });
+  showBanner('warning', title, body);
+}
+
+function scheduleNotifCheck() {
+  clearInterval(notifTimer);
+  setTimeout(() => {
+    if (Notification.permission === 'granted') checkAndNotify();
+    else {
+      const urgent = products.filter(p => daysLeft(p.expiry) <= 1);
+      if (urgent.length) showBanner('warning', '⚠️ Attenzione', `${urgent.length} prodotto/i in scadenza imminente.`);
+    }
+  }, 2000);
+  notifTimer = setInterval(() => {
+    if (Notification.permission === 'granted') checkAndNotify();
+  }, 60 * 60 * 1000);
+}
+
+document.getElementById('notif-btn').addEventListener('click', requestAndNotify);
+
+// ══════════════════════════════════════════
+// BANNER IN-APP
+// ══════════════════════════════════════════
+let bannerTimer = null;
+function showBanner(type, title, msg) {
+  const icons = { warning:'⚠️', success:'✅', info:'ℹ️' };
+  const b = document.getElementById('notif-banner');
+  b.querySelector('.notif-icon').textContent    = icons[type] || 'ℹ️';
+  document.getElementById('notif-title').textContent = title;
+  document.getElementById('notif-msg').textContent   = msg;
+  b.classList.remove('hidden');
+  clearTimeout(bannerTimer);
+  bannerTimer = setTimeout(() => b.classList.add('hidden'), 5000);
+}
+document.getElementById('notif-close-btn').addEventListener('click', () => document.getElementById('notif-banner').classList.add('hidden'));
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+document.getElementById('input-date').min = new Date().toISOString().split('T')[0];
+
+const savedId = getActiveId();
+if (savedId && getProfiles().find(p => p.id === savedId)) startApp();
+else showProfiles();
+
+// ── SERVICE WORKER (PWA) ──────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
-  return Array.from(allergens);
 }
-
-
-function init(){
-  // Show login screen first
-  renderProfilesGrid();
-  // Rings
-  for(let i=0;i<8;i++){
-    const r=document.createElement('div'); r.className='c-ring';
-    document.getElementById('coverRings').appendChild(r);
-  }
-  buildRings('nbRings',22);
-
-  renderCalHeader();
-  renderCalendar();
-  updatePdfStatus();
-
-  // Set today as default selected
-  const todayStr = new Date().toISOString().slice(0,10);
-  const todayYear  = new Date().getFullYear();
-  const todayMonth = new Date().getMonth();
-  if(todayYear===currentYear && todayMonth===currentMonth){
-    selectDay(todayStr);
-  }
-}
-
-init();
 </script>
 </body>
 </html>
