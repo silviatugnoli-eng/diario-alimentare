@@ -1800,28 +1800,51 @@ function confirmLoadMenu(parsed, ym, year, month){
     return;
   }
   appState.menus[ym] = parsed;
-  console.log(`confirmLoadMenu: salvo ${dayCount} giorni per ${ym}, uid=${viewingUserId || currentUser?.id}`);
-  saveState();
-  // Verifica immediata
   const uid = viewingUserId || currentUser?.id;
-  const check = loadUserState(uid);
-  const saved = check.menus && check.menus[ym] ? Object.keys(check.menus[ym]).length : 0;
-  console.log(`confirmLoadMenu: verifica — salvati ${saved} giorni (uid=${uid})`);
-  if(saved === 0){
-    showModal({
-      title:'⚠️ Menù non salvato',
-      body:`Il menù è stato letto (${dayCount} giorni) ma <b>non è stato salvato</b>.<br><br>
-            Stai usando Safari/Chrome in <b>modalità privata</b>? In questo caso il localStorage è disabilitato.<br><br>
-            Prova ad aprire l'app in una finestra normale.`,
-      buttons:[{label:'OK', action:'close', cls:'secondary'}]
-    });
+
+  // Salva
+  try{ saveUserState(uid, appState); } catch(e){
+    showModal({ title:'❌ Errore salvataggio', body:`<code>${e.message}</code>`, buttons:[{label:'OK',action:'close',cls:'secondary'}] });
     return;
   }
-  closeModal();
-  currentYear = year;
-  currentMonth = month;
-  setPdfStatus('ok',`✅ Menù ${MONTH_NAMES_IT[month]} ${year} caricato`);
-  renderCalendar();
+
+  // Verifica leggendo subito dal localStorage
+  let savedCount = 0;
+  try{
+    const raw = localStorage.getItem(`diario_user_${uid}_v3`);
+    const obj = raw ? JSON.parse(raw) : null;
+    savedCount = obj?.menus?.[ym] ? Object.keys(obj.menus[ym]).length : 0;
+  } catch(e){}
+
+  // Mostra diagnostica visibile
+  const allKeys = [];
+  for(let i=0;i<localStorage.length;i++) allKeys.push(localStorage.key(i));
+
+  showModal({
+    title: '🔍 Diagnostica salvataggio',
+    body: `
+      <div style="font-family:monospace;font-size:.78rem;line-height:1.8;background:#f5f5f5;padding:10px;border-radius:8px">
+        <b>UID:</b> ${uid}<br>
+        <b>Chiave:</b> diario_user_${uid}_v3<br>
+        <b>Giorni parsati:</b> ${dayCount}<br>
+        <b>Giorni salvati (verifica):</b> ${savedCount}<br>
+        <b>Chiavi localStorage:</b><br>
+        ${allKeys.map(k=>`· ${k}`).join('<br>') || '(nessuna)'}
+      </div>`,
+    buttons:[
+      {label: savedCount > 0 ? '✅ OK, continua' : '❌ Chiudi', action: ()=>{
+        if(savedCount > 0){
+          closeModal();
+          currentYear = year;
+          currentMonth = month;
+          setPdfStatus('ok',`✅ Menù ${MONTH_NAMES_IT[month]} ${year} caricato`);
+          renderCalendar();
+        } else {
+          closeModal();
+        }
+      }, cls: savedCount > 0 ? 'primary' : 'secondary'}
+    ]
+  });
 }
 
 // =====================================================================
