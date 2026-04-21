@@ -1282,7 +1282,34 @@ function loadState(){
 function saveState(){
   if(!currentUser) return;
   if(viewingUserId && viewingUserId !== currentUser.id) return; // admin reading only
-  saveUserState(viewingUserId || currentUser.id, appState);
+  const uid = viewingUserId || currentUser.id;
+  try{
+    saveUserState(uid, appState);
+    // Quick verify: re-read and check menus key count
+    const verify = loadUserState(uid);
+    const savedMenus = Object.keys(verify.menus || {}).length;
+    const inMemory   = Object.keys(appState.menus || {}).length;
+    if(savedMenus < inMemory){
+      console.warn('saveState: verifica fallita — dati in memoria:', inMemory, 'salvati:', savedMenus);
+    }
+  } catch(e){
+    console.error('saveState error:', e);
+    // Mostra errore visibile se localStorage è pieno o bloccato
+    showSaveError(e.message || 'Errore salvataggio');
+  }
+}
+
+function showSaveError(msg){
+  // Evita modal sovrapposti
+  if(document.getElementById('modalBg').style.display === 'flex') return;
+  showModal({
+    title: '⚠️ Salvataggio fallito',
+    body: `I dati non sono stati salvati.<br><br>
+           <b>Causa probabile:</b> memoria del browser esaurita o Safari in modalità privata.<br>
+           <code style="font-size:.8rem">${msg}</code><br><br>
+           Prova a liberare spazio (Impostazioni → Safari → Cancella dati) oppure usa Chrome.`,
+    buttons:[{label:'OK', action:'close', cls:'secondary'}]
+  });
 }
 
 function getDayState(dateStr){
@@ -1763,7 +1790,24 @@ function downloadRawText(){
 
 function confirmLoadMenu(parsed, ym, year, month){
   appState.menus[ym] = parsed;
+  const dayCount = Object.keys(parsed).length;
+  console.log(`confirmLoadMenu: salvo ${dayCount} giorni per ${ym}, utente=${currentUser?.id}, viewingUserId=${viewingUserId}`);
   saveState();
+  // Verifica immediata
+  const uid = viewingUserId || currentUser?.id;
+  const check = loadUserState(uid);
+  const saved = check.menus && check.menus[ym] ? Object.keys(check.menus[ym]).length : 0;
+  console.log(`confirmLoadMenu: verifica — salvati ${saved} giorni su localStorage (uid=${uid})`);
+  if(saved === 0){
+    showModal({
+      title:'⚠️ Menù non salvato',
+      body:`Il menù è stato letto correttamente (${dayCount} giorni) ma <b>non è stato salvato</b> nel browser.<br><br>
+            Stai usando Safari in <b>modalità di navigazione privata</b>? In questo caso il localStorage è disabilitato.<br><br>
+            Prova ad aprire l'app in una finestra Safari normale (non privata).`,
+      buttons:[{label:'OK', action:'close', cls:'secondary'}]
+    });
+    return;
+  }
   closeModal();
   currentYear = year;
   currentMonth = month;
