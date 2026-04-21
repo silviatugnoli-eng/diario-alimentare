@@ -946,28 +946,8 @@ function updatePinDots(rowId, prefix, count){
 // ── Login ─────────────────────────────────────────────────────────────
 function loginAs(profile){
   currentUser = profile;
-  viewingUserId = null; // reset sempre al login
+  viewingUserId = null;
   appState = loadUserState(profile.id);
-
-  // Verifica: se non trova la chiave specifica, prova varianti
-  if(!appState || Object.keys(appState.menus||{}).length === 0){
-    // Cerca tutte le chiavi diario_user_* nel localStorage
-    for(let i=0;i<localStorage.length;i++){
-      const k = localStorage.key(i);
-      if(k && k.startsWith('diario_user_') && k.endsWith('_v3') && k !== `diario_user_${profile.id}_v3`){
-        try{
-          const candidate = JSON.parse(localStorage.getItem(k));
-          if(candidate && (Object.keys(candidate.menus||{}).length > 0 || Object.keys(candidate.days||{}).length > 0)){
-            console.log(`loginAs: trovata chiave alternativa ${k}, la uso per ${profile.id}`);
-            // Migra: copia sotto la chiave corretta
-            localStorage.setItem(`diario_user_${profile.id}_v3`, localStorage.getItem(k));
-            appState = candidate;
-            break;
-          }
-        }catch(e){}
-      }
-    }
-  }
 
   // Hide login screen, show app
   document.getElementById('loginScreen').style.display = 'none';
@@ -1302,35 +1282,8 @@ function loadState(){
 }
 function saveState(){
   if(!currentUser) return;
-  if(viewingUserId && viewingUserId !== currentUser.id) return; // admin reading only
-  const uid = viewingUserId || currentUser.id;
-  try{
-    saveUserState(uid, appState);
-    // Quick verify: re-read and check menus key count
-    const verify = loadUserState(uid);
-    const savedMenus = Object.keys(verify.menus || {}).length;
-    const inMemory   = Object.keys(appState.menus || {}).length;
-    if(savedMenus < inMemory){
-      console.warn('saveState: verifica fallita — dati in memoria:', inMemory, 'salvati:', savedMenus);
-    }
-  } catch(e){
-    console.error('saveState error:', e);
-    // Mostra errore visibile se localStorage è pieno o bloccato
-    showSaveError(e.message || 'Errore salvataggio');
-  }
-}
-
-function showSaveError(msg){
-  // Evita modal sovrapposti
-  if(document.getElementById('modalBg').style.display === 'flex') return;
-  showModal({
-    title: '⚠️ Salvataggio fallito',
-    body: `I dati non sono stati salvati.<br><br>
-           <b>Causa probabile:</b> memoria del browser esaurita o Safari in modalità privata.<br>
-           <code style="font-size:.8rem">${msg}</code><br><br>
-           Prova a liberare spazio (Impostazioni → Safari → Cancella dati) oppure usa Chrome.`,
-    buttons:[{label:'OK', action:'close', cls:'secondary'}]
-  });
+  if(viewingUserId && viewingUserId !== currentUser.id) return;
+  saveUserState(viewingUserId || currentUser.id, appState);
 }
 
 function getDayState(dateStr){
@@ -1814,17 +1767,13 @@ function confirmLoadMenu(parsed, ym, year, month){
   if(dayCount === 0){
     showModal({
       title:'⚠️ Nessun giorno trovato',
-      body:'Il parser non ha trovato giorni validi. Il menù esistente non è stato modificato.',
+      body:'Il parser non ha trovato giorni validi.',
       buttons:[{label:'OK', action:'close', cls:'secondary'}]
     });
     return;
   }
   appState.menus[ym] = parsed;
-  const uid = viewingUserId || currentUser?.id;
-  try{ saveUserState(uid, appState); } catch(e){
-    showModal({ title:'❌ Errore salvataggio', body:`<code>${e.message}</code>`, buttons:[{label:'OK',action:'close',cls:'secondary'}] });
-    return;
-  }
+  saveState();
   closeModal();
   currentYear = year;
   currentMonth = month;
