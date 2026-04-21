@@ -747,7 +747,8 @@ body{
       <button class="month-nav-arrow" id="btnNextMonth" onclick="changeMonth(+1)">▶</button>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <div class="pdf-status none" id="pdfStatus">📄 Nessun menù caricato</div>
-        <button class="btn-upload-pdf" onclick="document.getElementById('pdfInput').click()">📤 Carica PDF menù</button>
+        <button class="btn-upload-pdf" onclick="document.getElementById('pdfInput').click()">📤 Carica PDF</button>
+        <button class="btn-upload-pdf" style="background:linear-gradient(135deg,#74B9FF,#0984E3);border-color:#0652DD;box-shadow:2px 2px 0 #0652DD" onclick="showUrlLoader()">🔗 Carica da URL</button>
         <button id="btnClearMenu" onclick="clearCurrentMonthMenu()" style="display:none;font-family:Caveat,cursive;font-size:1rem;font-weight:700;padding:8px 14px;background:#fff;border:2.5px solid #F46B6B;border-radius:24px;color:#F46B6B;cursor:pointer;box-shadow:2px 2px 0 #F46B6B" title="Cancella il menù di questo mese e ricaricalo da PDF">🗑️ Cancella menù</button>
         <input type="file" id="pdfInput" accept=".pdf" onchange="handlePdfUpload(event)">
       </div>
@@ -1771,6 +1772,116 @@ function confirmLoadMenu(parsed, ym, year, month){
 }
 
 // =====================================================================
+// CARICA PDF DA URL (Ribò/Elior diretto)
+// =====================================================================
+function showUrlLoader(){
+  const y = currentYear;
+  const m = String(currentMonth + 1);
+  const defaultUrl = `https://www.riboscuola.it/_controls/Elior.Ribo.Module/PDFMenuHelper.aspx?destination=1011&diet=2&year=${y}&month=${m}&pdftype=1`;
+
+  const box = document.getElementById('modalBox');
+  box.innerHTML = `
+    <h2>🔗 Carica menù da URL</h2>
+    <p style="font-family:'Patrick Hand',cursive;font-size:.9rem;color:var(--ink-light);line-height:1.6;margin-bottom:12px">
+      Incolla l'URL del PDF Ribò/Elior. Il mese corrente è già precompilato —
+      cambia solo <b>month=</b> e <b>year=</b> se necessario.
+    </p>
+    <input id="pdfUrlInput" type="text" value="${defaultUrl}"
+      style="width:100%;font-family:'Patrick Hand',cursive;font-size:.78rem;padding:10px 12px;
+             border:2px solid #ddd;border-radius:10px;outline:none;margin-bottom:8px;
+             word-break:break-all;box-sizing:border-box"
+      onclick="this.select()"
+    />
+    <div id="urlLoadError" style="font-family:'Patrick Hand',cursive;font-size:.85rem;color:var(--red);min-height:18px;margin-bottom:8px"></div>
+    <div class="modal-btns">
+      <button class="modal-btn primary" onclick="handlePdfUrl()">📥 Scarica e carica</button>
+      <button class="modal-btn secondary" onclick="closeModal()">Annulla</button>
+    </div>
+  `;
+  document.getElementById('modalBg').style.display = 'flex';
+}
+
+async function handlePdfUrl(){
+  const urlInput = document.getElementById('pdfUrlInput');
+  const errEl    = document.getElementById('urlLoadError');
+  const url = urlInput ? urlInput.value.trim() : '';
+  if(!url){ if(errEl) errEl.textContent = '⚠️ URL vuoto'; return; }
+
+  closeModal();
+  setPdfStatus('loading','⏳ Scarico PDF da URL...');
+
+  try{
+    let arrayBuf;
+    try{
+      const resp = await fetch(url);
+      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      arrayBuf = await resp.arrayBuffer();
+    } catch(corsErr){
+      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+      const resp2 = await fetch(proxyUrl);
+      if(!resp2.ok) throw new Error(`HTTP ${resp2.status} (via proxy)`);
+      arrayBuf = await resp2.arrayBuffer();
+    }
+
+    const pdf = await pdfjsLib.getDocument({data: arrayBuf}).promise;
+    const page = await pdf.getPage(1);
+    const content = await page.getTextContent();
+    const viewport = page.getViewport({scale:1});
+
+    const items = content.items.map(item => ({
+      str: item.str.trim(),
+      x: Math.round(item.transform[4]),
+      y: Math.round(item.transform[5]),
+      h: Math.round(Math.abs(item.transform[3]))
+    })).filter(i => i.str.length > 0);
+
+    _lastRawText = items.map(i=>`[x:${i.x} y:${i.y}] ${i.str}`).join('\n');
+
+    const parsed = parseMenuFromItems(items, viewport.height);
+    const dayCount = Object.keys(parsed).length;
+
+    if(dayCount === 0){
+      setPdfStatus('err','❌ Nessun dato trovato');
+      showModal({
+        title:'⚠️ PDF non riconosciuto',
+        body:`Il PDF è stato scaricato ma non contiene dati riconoscibili.<br>
+              Prova a scaricare il PDF manualmente e caricarlo con "📤 Carica PDF".`,
+        buttons:[
+          {label:'📄 Scarica debug', action: downloadRawText, cls:'primary'},
+          {label:'Chiudi', action:'close', cls:'secondary'}
+        ]
+      });
+      return;
+    }
+
+    const firstKey = Object.keys(parsed).sort()[0];
+    const detectedYM = firstKey.slice(0,7);
+    const [dy,dm] = detectedYM.split('-').map(Number);
+    const preview = buildPreview(parsed);
+    showModal({
+      title:`📅 Menù trovato: ${MONTH_NAMES_IT[dm-1]} ${dy}`,
+      body:`Ho trovato <b>${dayCount} giorni scolastici</b>. Vuoi caricarli?`,
+      preview,
+      buttons:[
+        {label:'✅ Sì, carica!', action:()=>confirmLoadMenu(parsed,detectedYM,dy,dm-1), cls:'primary'},
+        {label:'Annulla', action:'close', cls:'secondary'}
+      ]
+    });
+
+  } catch(err){
+    console.error(err);
+    setPdfStatus('err','❌ Errore scaricamento');
+    showModal({
+      title:'❌ Impossibile scaricare il PDF',
+      body:`<b>${err.message}</b><br><br>
+            Il sito Ribò potrebbe bloccare il download diretto. In questo caso
+            scarica il PDF manualmente dal sito e usa <b>"📤 Carica PDF"</b>.`,
+      buttons:[{label:'Chiudi', action:'close', cls:'secondary'}]
+    });
+  }
+}
+
+// =====================================================================
 // PARSER BASATO SU COORDINATE XY — Elior/Ribo
 //
 // Struttura PDF pagina 1:
@@ -1798,7 +1909,40 @@ const MONTHS_MAP = {
   'luglio':7,'agosto':8,'settembre':9,'ottobre':10,'novembre':11,'dicembre':12
 };
 
+// Parole chiave che indicano l'inizio del blocco LEGENDA/NOTE — tutto ciò che segue va ignorato
+const LEGEND_KEYWORDS = [
+  'legenda','note:','i legumi','il pesce','i prodotti','prodotti dop',
+  'prodotti igp','prodotti biologici','rotazione','spuntino\na metà',
+  'a metà mattina','inoltre\na completamento','iv gamma',
+  'indicazioni specifiche','piatto da scoprire','ricetta del mese',
+  'menu convenzionale','menu\nconvenzionale'
+];
+
+function isLegendText(str){
+  const s = str.toLowerCase().trim();
+  return LEGEND_KEYWORDS.some(k => s.startsWith(k) || s === k);
+}
+
 function parseMenuFromItems(items, pageHeight) {
+  // ── 0. Trova la Y del blocco LEGENDA e taglia tutto ciò che è sotto ─
+  // La legenda inizia con la parola "LEGENDA" o "NOTE:" — troviamo la sua Y
+  // e scartiamo tutti gli items con Y <= legendY (ricorda: Y cresce verso l'alto nel PDF)
+  let legendCutoffY = 0; // tutto ciò che ha Y <= questo valore viene scartato
+  for(const item of items){
+    if(isLegendText(item.str)){
+      // Questa è la Y della legenda — scarta tutto sotto (Y minore o uguale)
+      // Aggiungiamo un piccolo margine di 10pt
+      legendCutoffY = Math.max(legendCutoffY, item.y + 10);
+    }
+  }
+  // Se trovata legenda, filtra gli items
+  const filteredItems = legendCutoffY > 0
+    ? items.filter(i => i.y > legendCutoffY)
+    : items;
+
+  // Usa filteredItems per tutto il resto
+  items = filteredItems;
+
   // ── 1. Rileva mese/anno ────────────────────────────────────────────
   let detectedYear = new Date().getFullYear();
   let detectedMonth = new Date().getMonth() + 1;
