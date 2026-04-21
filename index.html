@@ -946,6 +946,7 @@ function updatePinDots(rowId, prefix, count){
 // ── Login ─────────────────────────────────────────────────────────────
 function loginAs(profile){
   currentUser = profile;
+  viewingUserId = null; // reset sempre al login
   appState = loadUserState(profile.id);
 
   // Hide login screen, show app
@@ -1789,21 +1790,29 @@ function downloadRawText(){
 }
 
 function confirmLoadMenu(parsed, ym, year, month){
-  appState.menus[ym] = parsed;
   const dayCount = Object.keys(parsed).length;
-  console.log(`confirmLoadMenu: salvo ${dayCount} giorni per ${ym}, utente=${currentUser?.id}, viewingUserId=${viewingUserId}`);
+  if(dayCount === 0){
+    showModal({
+      title:'⚠️ Nessun giorno trovato',
+      body:'Il parser non ha trovato giorni validi. Il menù esistente non è stato modificato.',
+      buttons:[{label:'OK', action:'close', cls:'secondary'}]
+    });
+    return;
+  }
+  appState.menus[ym] = parsed;
+  console.log(`confirmLoadMenu: salvo ${dayCount} giorni per ${ym}, uid=${viewingUserId || currentUser?.id}`);
   saveState();
   // Verifica immediata
   const uid = viewingUserId || currentUser?.id;
   const check = loadUserState(uid);
   const saved = check.menus && check.menus[ym] ? Object.keys(check.menus[ym]).length : 0;
-  console.log(`confirmLoadMenu: verifica — salvati ${saved} giorni su localStorage (uid=${uid})`);
+  console.log(`confirmLoadMenu: verifica — salvati ${saved} giorni (uid=${uid})`);
   if(saved === 0){
     showModal({
       title:'⚠️ Menù non salvato',
-      body:`Il menù è stato letto correttamente (${dayCount} giorni) ma <b>non è stato salvato</b> nel browser.<br><br>
-            Stai usando Safari in <b>modalità di navigazione privata</b>? In questo caso il localStorage è disabilitato.<br><br>
-            Prova ad aprire l'app in una finestra Safari normale (non privata).`,
+      body:`Il menù è stato letto (${dayCount} giorni) ma <b>non è stato salvato</b>.<br><br>
+            Stai usando Safari/Chrome in <b>modalità privata</b>? In questo caso il localStorage è disabilitato.<br><br>
+            Prova ad aprire l'app in una finestra normale.`,
       buttons:[{label:'OK', action:'close', cls:'secondary'}]
     });
     return;
