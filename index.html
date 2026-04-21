@@ -949,6 +949,26 @@ function loginAs(profile){
   viewingUserId = null; // reset sempre al login
   appState = loadUserState(profile.id);
 
+  // Verifica: se non trova la chiave specifica, prova varianti
+  if(!appState || Object.keys(appState.menus||{}).length === 0){
+    // Cerca tutte le chiavi diario_user_* nel localStorage
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith('diario_user_') && k.endsWith('_v3') && k !== `diario_user_${profile.id}_v3`){
+        try{
+          const candidate = JSON.parse(localStorage.getItem(k));
+          if(candidate && (Object.keys(candidate.menus||{}).length > 0 || Object.keys(candidate.days||{}).length > 0)){
+            console.log(`loginAs: trovata chiave alternativa ${k}, la uso per ${profile.id}`);
+            // Migra: copia sotto la chiave corretta
+            localStorage.setItem(`diario_user_${profile.id}_v3`, localStorage.getItem(k));
+            appState = candidate;
+            break;
+          }
+        }catch(e){}
+      }
+    }
+  }
+
   // Hide login screen, show app
   document.getElementById('loginScreen').style.display = 'none';
 
@@ -1801,50 +1821,15 @@ function confirmLoadMenu(parsed, ym, year, month){
   }
   appState.menus[ym] = parsed;
   const uid = viewingUserId || currentUser?.id;
-
-  // Salva
   try{ saveUserState(uid, appState); } catch(e){
     showModal({ title:'❌ Errore salvataggio', body:`<code>${e.message}</code>`, buttons:[{label:'OK',action:'close',cls:'secondary'}] });
     return;
   }
-
-  // Verifica leggendo subito dal localStorage
-  let savedCount = 0;
-  try{
-    const raw = localStorage.getItem(`diario_user_${uid}_v3`);
-    const obj = raw ? JSON.parse(raw) : null;
-    savedCount = obj?.menus?.[ym] ? Object.keys(obj.menus[ym]).length : 0;
-  } catch(e){}
-
-  // Mostra diagnostica visibile
-  const allKeys = [];
-  for(let i=0;i<localStorage.length;i++) allKeys.push(localStorage.key(i));
-
-  showModal({
-    title: '🔍 Diagnostica salvataggio',
-    body: `
-      <div style="font-family:monospace;font-size:.78rem;line-height:1.8;background:#f5f5f5;padding:10px;border-radius:8px">
-        <b>UID:</b> ${uid}<br>
-        <b>Chiave:</b> diario_user_${uid}_v3<br>
-        <b>Giorni parsati:</b> ${dayCount}<br>
-        <b>Giorni salvati (verifica):</b> ${savedCount}<br>
-        <b>Chiavi localStorage:</b><br>
-        ${allKeys.map(k=>`· ${k}`).join('<br>') || '(nessuna)'}
-      </div>`,
-    buttons:[
-      {label: savedCount > 0 ? '✅ OK, continua' : '❌ Chiudi', action: ()=>{
-        if(savedCount > 0){
-          closeModal();
-          currentYear = year;
-          currentMonth = month;
-          setPdfStatus('ok',`✅ Menù ${MONTH_NAMES_IT[month]} ${year} caricato`);
-          renderCalendar();
-        } else {
-          closeModal();
-        }
-      }, cls: savedCount > 0 ? 'primary' : 'secondary'}
-    ]
-  });
+  closeModal();
+  currentYear = year;
+  currentMonth = month;
+  setPdfStatus('ok',`✅ Menù ${MONTH_NAMES_IT[month]} ${year} caricato`);
+  renderCalendar();
 }
 
 // =====================================================================
