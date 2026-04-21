@@ -948,18 +948,16 @@ function loginAs(profile){
   currentUser = profile;
   viewingUserId = null;
 
-  // Cerca tutte le chiavi diario_user_* presenti
+  // Cerca chiavi diario_user_* e migra se necessario
   const allDiarioKeys = [];
   for(let i=0;i<localStorage.length;i++){
     const k = localStorage.key(i);
     if(k && k.startsWith('diario_user_') && k.endsWith('_v3')) allDiarioKeys.push(k);
   }
 
-  // Carica con la chiave del profilo corrente
   appState = loadUserState(profile.id);
   const hasData = Object.keys(appState.menus||{}).length > 0 || Object.keys(appState.days||{}).length > 0;
 
-  // Se non trova dati MA esistono altre chiavi diario → mismatch ID
   if(!hasData && allDiarioKeys.length > 0){
     for(const k of allDiarioKeys){
       if(k === `diario_user_${profile.id}_v3`) continue;
@@ -974,14 +972,16 @@ function loginAs(profile){
     }
   }
 
-  // DEBUG TEMPORANEO — mostra ID profilo e chiavi presenti
-  const menuCount = Object.keys(appState.menus||{}).length;
-  const daysCount = Object.keys(appState.days||{}).length;
   document.getElementById('loginScreen').style.display = 'none';
   const sub = document.querySelector('.cover-text .subtitle');
   if(sub) sub.textContent = `${profile.emoji} ${profile.name}`;
   renderUserBar();
-  if(profile.isAdmin) renderAdminSwitcher();
+
+  // Admin switcher solo se l'utente è admin E ci sono altri profili
+  // Diego è admin ma non deve vedere Lea — rimuoviamo questa feature:
+  // il genitore usa il proprio profilo separato, non l'admin switcher
+  // if(profile.isAdmin) renderAdminSwitcher(); // DISABILITATO
+
   currentYear  = new Date().getFullYear();
   currentMonth = new Date().getMonth();
   selectedDate = null;
@@ -991,23 +991,6 @@ function loginAs(profile){
   const todayStr = new Date().toISOString().slice(0,10);
   selectDay(todayStr);
   setTimeout(showBackupReminder, 800);
-
-  // Mostra diagnostica login
-  setTimeout(()=>{
-    showModal({
-      title:'🔍 Debug login',
-      body:`<div style="font-family:monospace;font-size:.78rem;line-height:2;background:#f5f5f5;padding:10px;border-radius:8px">
-        <b>ID profilo (da profiles_v1):</b><br>${profile.id}<br><br>
-        <b>Cerca su localStorage:</b><br>diario_user_${profile.id}_v3<br><br>
-        <b>Menù trovati:</b> ${menuCount}<br>
-        <b>Giorni trovati:</b> ${daysCount}<br><br>
-        <b>Tutte le chiavi diario:</b><br>
-        ${allDiarioKeys.map(k=>`· ${k}`).join('<br>') || '(nessuna)'}
-      </div>`,
-      buttons:[{label:'OK', action:'close', cls:'secondary'}]
-    });
-  }, 600);
-  return;
 }
 
 function logout(){
@@ -1379,13 +1362,18 @@ function renderCalendar(){
   today.setHours(0,0,0,0);
 
   const firstDay = new Date(currentYear, currentMonth, 1);
-  // Monday-based: Mon=0...Sun=6
   let startOffset = firstDay.getDay() - 1;
   if(startOffset < 0) startOffset = 6;
 
   const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
   const ym = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
   const monthMenu = getMonthMenu(ym);
+
+  // Guardia di sicurezza
+  if(daysInMonth < 1 || daysInMonth > 31 || startOffset > 6){
+    cal.innerHTML = `<div style="padding:20px;font-family:'Patrick Hand',cursive;color:red">Errore calendario: month=${currentMonth} year=${currentYear} days=${daysInMonth} offset=${startOffset}</div>`;
+    return;
+  }
 
   // empty cells
   for(let i=0;i<startOffset;i++){
