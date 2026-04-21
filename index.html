@@ -748,7 +748,7 @@ body{
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <div class="pdf-status none" id="pdfStatus">📄 Nessun menù caricato</div>
         <button class="btn-upload-pdf" onclick="document.getElementById('pdfInput').click()">📤 Carica PDF</button>
-        <button class="btn-upload-pdf" style="background:linear-gradient(135deg,#74B9FF,#0984E3);border-color:#0652DD;box-shadow:2px 2px 0 #0652DD" onclick="showUrlLoader()">🔗 Carica da URL</button>
+        <a href="https://www.riboscuola.it/menu/ricerca-menu.aspx" target="_blank" class="btn-upload-pdf" style="background:linear-gradient(135deg,#74B9FF,#0984E3);border-color:#0652DD;box-shadow:2px 2px 0 #0652DD;text-decoration:none">🌐 Apri Ribò</a>
         <button id="btnClearMenu" onclick="clearCurrentMonthMenu()" style="display:none;font-family:Caveat,cursive;font-size:1rem;font-weight:700;padding:8px 14px;background:#fff;border:2.5px solid #F46B6B;border-radius:24px;color:#F46B6B;cursor:pointer;box-shadow:2px 2px 0 #F46B6B" title="Cancella il menù di questo mese e ricaricalo da PDF">🗑️ Cancella menù</button>
         <input type="file" id="pdfInput" accept=".pdf" onchange="handlePdfUpload(event)">
       </div>
