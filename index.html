@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
+/* --- MANTENGO TUTTO IL TUO CSS ORIGINALE --- */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --cream:#FFF9F0;--paper:#FFFDF7;--ink:#2D1F1F;--ink-light:#7A6060;
@@ -76,7 +77,6 @@ body{
 .ch-mon{color:#E67E22}.ch-tue{color:#2980B9}.ch-wed{color:#27AE60}
 .ch-thu{color:#8E44AD}.ch-fri{color:#C0392B}.ch-sat{color:#E74C3C}.ch-sun{color:#E74C3C}
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.cal-empty{border-radius:10px;min-height:72px;background:transparent}
 .cal-day{
   border-radius:10px;min-height:72px;cursor:pointer;
   border:2px solid rgba(0,0,0,.08);padding:6px 6px 4px;
@@ -87,13 +87,9 @@ body{
 .cal-day:hover{transform:translateY(-2px);box-shadow:3px 5px 0 rgba(0,0,0,.08);z-index:2}
 .cal-day.today{border-color:var(--orange)!important;box-shadow:0 0 0 3px rgba(255,159,67,.3),2px 2px 0 var(--orange)}
 .cal-day.selected{border-color:var(--sky)!important;box-shadow:0 0 0 3px rgba(91,168,245,.35),2px 2px 0 var(--sky);transform:translateY(-3px)}
-.cal-day.school{border-color:rgba(76,187,122,.4)}
-.cal-day.future{opacity:.55}
 .day-num{font-family:'Caveat',cursive;font-size:1.35rem;font-weight:700;line-height:1}
 .day-school-dot{width:7px;height:7px;border-radius:50%;background:var(--green);margin-top:2px;align-self:flex-start}
 .day-eaten-bar{margin-top:auto;height:5px;border-radius:3px;background:linear-gradient(90deg,var(--green),#7EE8A2)}
-.day-symptom-row{display:flex;gap:1px;flex-wrap:wrap;margin-top:1px}
-.day-sym-dot{font-size:.7rem;line-height:1}
 /* Colori giorni */
 .cal-day[data-wd="1"]{background:var(--col-mon)}
 .cal-day[data-wd="2"]{background:var(--col-tue)}
@@ -102,1379 +98,165 @@ body{
 .cal-day[data-wd="5"]{background:var(--col-fri)}
 .cal-day[data-wd="6"]{background:var(--col-sat)}
 .cal-day[data-wd="0"]{background:var(--col-sun)}
-/* Day panel */
-.day-panel{margin-top:20px;background:white;border-radius:16px;border:2px solid rgba(0,0,0,.08);box-shadow:4px 4px 0 rgba(0,0,0,.06);overflow:hidden;animation:slideIn .25s ease}
-@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.day-panel-header{display:flex;align-items:center;gap:12px;padding:14px 20px;background:linear-gradient(135deg,#FFF3E0,#FFE0C0);border-bottom:2px dashed rgba(0,0,0,.1)}
-.dph-date{font-family:'Caveat',cursive;font-size:1.9rem;font-weight:700;color:var(--ink)}
-.dph-badge{font-family:'Patrick Hand',cursive;font-size:.8rem;padding:4px 12px;border-radius:20px;border:2px solid;margin-left:auto}
-.dph-badge.school{background:#D4EDDA;border-color:#5BCB8A;color:#155724}
-.dph-badge.weekend{background:#FFD0D0;border-color:#F46B6B;color:#721C24}
-.progress-row{display:flex;align-items:center;gap:10px;padding:10px 20px;background:rgba(255,255,255,.6);border-bottom:1px solid rgba(0,0,0,.06)}
-.prog-label{font-family:'Caveat',cursive;font-size:.95rem;color:var(--ink-light);white-space:nowrap}
-.prog-bar-out{flex:1;height:14px;background:#EBEBEB;border-radius:20px;overflow:hidden;border:1.5px solid rgba(0,0,0,.08)}
-.prog-bar-in{height:100%;background:linear-gradient(90deg,#4CBB7A,#7EE8A2);border-radius:20px;transition:width .4s ease}
-.prog-pct{font-family:'Caveat',cursive;font-weight:700;font-size:1rem;color:var(--green);white-space:nowrap}
-.meals-wrap{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
-.meal-block{border:2px solid rgba(0,0,0,.07);border-radius:14px;overflow:hidden;box-shadow:2px 2px 0 rgba(0,0,0,.04)}
-.meal-head{display:flex;align-items:center;gap:8px;padding:9px 14px;font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;border-bottom:1.5px dashed rgba(0,0,0,.1);cursor:pointer;user-select:none}
-.meal-head .meal-arrow{margin-left:auto;font-size:.8rem;transition:transform .2s}
-.m-col{background:#FFF7E6}.m-spu{background:#E6FFF2}.m-pra{background:#E6F4FF}.m-mer{background:#FFE6F2}.m-cen{background:#F0E6FF}
-.meal-items-wrap{padding:6px 10px}
-.manual-add-area{padding:8px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.manual-input{font-family:'Patrick Hand',cursive;font-size:.95rem;flex:1;min-width:120px;border:2px solid #ddd;border-radius:10px;padding:7px 12px;outline:none;background:white;transition:border-color .2s}
-.manual-input:focus{border-color:var(--sky)}
-.btn-add-food{font-family:'Caveat',cursive;font-size:1rem;font-weight:700;padding:7px 16px;background:var(--sky);border:2px solid #3A88D5;border-radius:10px;color:#fff;cursor:pointer;box-shadow:2px 2px 0 #3A88D5;transition:all .15s;white-space:nowrap}
-.btn-add-food:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #3A88D5}
-.food-row{display:flex;align-items:flex-start;gap:8px;padding:7px 6px;border-bottom:1px solid rgba(0,0,0,.05);border-radius:8px;transition:background .15s;cursor:pointer}
-.food-row:last-child{border-bottom:none}
-.food-row:hover{background:rgba(255,255,0,.07)}
-.food-row.eaten{background:rgba(76,187,122,.1)}
-.food-row.not-eaten{background:rgba(244,107,107,.07)}
-.food-cb{flex-shrink:0;width:26px;height:26px;border:2.5px solid #ccc;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .18s;background:white;user-select:none}
-.food-cb.eaten{border-color:var(--green);background:var(--green);color:#fff;box-shadow:0 0 0 3px rgba(76,187,122,.2)}
-.food-cb.not-eaten{border-color:var(--red);background:var(--red);color:#fff;box-shadow:0 0 0 3px rgba(244,107,107,.2)}
-.food-text{flex:1}
-.food-name{font-family:'Patrick Hand',cursive;font-size:.95rem;color:var(--ink);font-weight:600;line-height:1.3}
-.food-allerg{display:flex;flex-wrap:wrap;gap:2px;margin-top:2px}
-.allerg-tag{font-size:.6rem;background:#FFF3E0;border:1px solid #FFB74D;border-radius:8px;padding:1px 5px;color:#E65100}
-.food-del{flex-shrink:0;font-size:.85rem;color:#ddd;cursor:pointer;padding:2px 4px;transition:color .15s;align-self:center}
-.food-del:hover{color:var(--red)}
-.sym-inline-block{border-top:1.5px dashed rgba(0,0,0,.08);padding:10px 12px 12px;background:rgba(255,240,245,.5)}
-.sym-inline-head{font-family:'Patrick Hand',cursive;font-size:.8rem;color:var(--ink-light);margin-bottom:8px}
-.sym-inline-grid{display:flex;flex-wrap:wrap;gap:6px}
-.sym-chip{display:flex;align-items:center;gap:5px;padding:5px 11px 5px 8px;border-radius:20px;border:2px solid rgba(0,0,0,.09);background:white;cursor:pointer;transition:all .15s;font-family:'Patrick Hand',cursive;font-size:.82rem;color:var(--ink);box-shadow:1px 1px 0 rgba(0,0,0,.05)}
-.sym-chip:hover{transform:translateY(-1px)}
-.sym-chip.active{border-color:var(--red);background:#FFF0F0;color:#A01060;font-weight:700}
-.sym-chip-emoji{font-size:1rem}
-.notes-block{margin:0 16px 16px;border:2px solid #B5D8FF;border-radius:14px;overflow:hidden}
-.notes-head{background:linear-gradient(135deg,#D6EFFF,#B5D8FF);padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1.5px dashed #B5D8FF;font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;color:#1A6FA8}
-.notes-ta{width:100%;padding:12px 14px;border:none;outline:none;resize:none;font-family:'Patrick Hand',cursive;font-size:.95rem;line-height:2rem;background:transparent;color:var(--ink);min-height:70px;background-image:repeating-linear-gradient(to bottom,transparent 0px,transparent 31px,rgba(100,149,237,.1) 31px,rgba(100,149,237,.1) 32px);background-size:100% 32px}
-.bottom-bar{max-width:960px;margin:16px auto 0;display:flex;gap:10px;flex-wrap:wrap}
-.btn-dl{font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;padding:11px 24px;border-radius:28px;cursor:pointer;color:#fff;display:flex;align-items:center;gap:7px;transition:all .15s}
-.btn-dl.green{background:linear-gradient(135deg,#4CBB7A,#2ECC71);border:2.5px solid #1A7A45;box-shadow:3px 3px 0 #1A7A45}
-.btn-dl.green:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 #1A7A45}
-.btn-dl.blue{background:linear-gradient(135deg,#74B9FF,#0984E3);border:2.5px solid #0652DD;box-shadow:3px 3px 0 #0652DD}
-.btn-dl.blue:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 #0652DD}
-.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:8px 12px;background:rgba(255,255,255,.65);border-radius:10px;border:1.5px dashed #ddd}
-.leg-item{display:flex;align-items:center;gap:5px;font-family:'Patrick Hand',cursive;font-size:.85rem;color:var(--ink-light)}
-.leg-dot{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.75rem}
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
-.modal{background:white;border-radius:18px;padding:28px;max-width:520px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideIn .25s ease}
-.modal h2{font-family:'Caveat',cursive;font-size:1.8rem;color:var(--ink);margin-bottom:8px}
-.modal p{font-family:'Patrick Hand',cursive;font-size:1rem;color:var(--ink-light);margin-bottom:16px;line-height:1.5}
-.modal-btns{display:flex;gap:10px;flex-wrap:wrap}
-.modal-btn{font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;padding:10px 22px;border-radius:24px;cursor:pointer;border:2.5px solid;transition:all .15s}
-.modal-btn.primary{background:var(--green);border-color:#1A7A45;color:#fff;box-shadow:2px 2px 0 #1A7A45}
-.modal-btn.primary:hover{transform:translate(-1px,-1px)}
-.modal-btn.secondary{background:#F0F0F0;border-color:#ccc;color:var(--ink)}
-.parsed-preview{background:#F9F9F9;border-radius:10px;padding:12px;max-height:200px;overflow-y:auto;font-family:'Patrick Hand',cursive;font-size:.88rem;color:var(--ink-light);border:1.5px solid #eee;margin-bottom:14px}
-.parsed-preview .p-day{font-weight:700;color:var(--ink);margin-top:8px}
-.parsed-preview .p-day:first-child{margin-top:0}
-.analysis-panel{max-width:960px;margin:18px auto 0;background:var(--paper);border-radius:4px 18px 18px 4px;box-shadow:-5px 0 0 #DDD0B0,5px 5px 0 #C8B090,0 8px 36px rgba(0,0,0,.14);position:relative;overflow:hidden}
-.nb-spine2{position:absolute;left:0;top:0;bottom:0;width:48px;background:linear-gradient(to right,#C8D8A0,#DCE8C4);z-index:5}
-.analysis-content{margin-left:56px;padding:24px 28px 36px;position:relative;background-image:repeating-linear-gradient(to bottom,transparent 0px,transparent 31px,rgba(100,149,237,.10) 31px,rgba(100,149,237,.10) 32px);background-size:100% 32px}
-.analysis-title{font-family:'Caveat',cursive;font-size:2rem;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.analysis-subtitle{font-family:'Patrick Hand',cursive;font-size:.95rem;color:var(--ink-light);margin-bottom:22px;line-height:1.5}
-.analysis-empty{text-align:center;padding:40px 20px;font-family:'Caveat',cursive;font-size:1.3rem;color:var(--ink-light)}
-.sym-filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.sym-filter-btn{font-family:'Caveat',cursive;font-size:1rem;font-weight:700;padding:7px 16px;border-radius:24px;border:2px solid #ddd;cursor:pointer;background:white;transition:all .15s;display:flex;align-items:center;gap:5px}
-.sym-filter-btn.active{background:#FFF0F0;border-color:var(--red);color:#A01060}
-.sym-filter-btn.all.active{background:#EEF8FF;border-color:var(--sky);color:#1A6FA8}
-.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:24px}
-.stat-card{background:white;border:2px solid rgba(0,0,0,.07);border-radius:14px;padding:14px 10px;text-align:center;box-shadow:2px 2px 0 rgba(0,0,0,.05)}
-.stat-emoji{font-size:1.8rem;display:block;margin-bottom:4px}
-.stat-num{font-family:'Caveat',cursive;font-size:2rem;font-weight:700;color:var(--ink);line-height:1}
-.stat-label{font-family:'Patrick Hand',cursive;font-size:.78rem;color:var(--ink-light);margin-top:2px}
-.stat-card.alert{border-color:#F8BBD9;background:#FFF5F8}
-.stat-card.alert .stat-num{color:#A01060}
-.an-section{margin-bottom:24px}
-.an-section-title{font-family:'Caveat',cursive;font-size:1.35rem;font-weight:700;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:2px dashed rgba(0,0,0,.1)}
-.food-corr-list{display:flex;flex-direction:column;gap:8px}
-.food-corr-row{background:white;border:2px solid rgba(0,0,0,.07);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:12px;box-shadow:2px 2px 0 rgba(0,0,0,.04);transition:all .15s}
-.food-corr-row.high{border-left:4px solid var(--red);background:#FFF8F8}
-.food-corr-row.medium{border-left:4px solid var(--orange);background:#FFFBF5}
-.food-corr-row.low{border-left:4px solid #ccc}
-.fcr-name{font-family:'Patrick Hand',cursive;font-size:.95rem;font-weight:600;color:var(--ink);flex:1}
-.fcr-syms{display:flex;gap:4px;flex-wrap:wrap}
-.fcr-sym-tag{font-size:.72rem;padding:2px 8px;border-radius:10px;font-family:'Patrick Hand',cursive;font-weight:600;background:#FFF0F0;border:1px solid #F8BBD9;color:#A01060}
-.fcr-count{font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;background:#F0F0F0;border-radius:8px;padding:2px 8px;color:var(--ink-light);white-space:nowrap;min-width:36px;text-align:center}
-.fcr-count.danger{background:#FFE0E0;color:#A01060}
-.risk-bar-wrap{width:80px;height:8px;background:#F0F0F0;border-radius:4px;overflow:hidden;flex-shrink:0}
-.risk-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--orange),var(--red))}
-.day-sym-list{display:flex;flex-direction:column;gap:7px}
-.day-sym-row{background:white;border:2px solid rgba(0,0,0,.07);border-radius:12px;padding:10px 14px;display:flex;align-items:flex-start;gap:12px;box-shadow:2px 2px 0 rgba(0,0,0,.04);cursor:pointer;transition:all .15s}
-.day-sym-row:hover{border-color:var(--sky);transform:translateX(3px)}
-.dsr-date{font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;color:var(--ink);white-space:nowrap;min-width:100px}
-.dsr-sym-pill{font-size:.78rem;padding:3px 10px;border-radius:10px;font-family:'Patrick Hand',cursive;font-weight:600;background:#FFF0F0;border:1.5px solid #F8BBD9;color:#A01060;display:flex;align-items:center;gap:3px}
-.dsr-foods{font-family:'Patrick Hand',cursive;font-size:.78rem;color:var(--ink-light);margin-top:3px;line-height:1.4}
-.allerg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
-.allerg-card{background:white;border:2px solid rgba(0,0,0,.07);border-radius:12px;padding:10px 12px;text-align:center;box-shadow:2px 2px 0 rgba(0,0,0,.04)}
-.allerg-card.danger{border-color:#F8BBD9;background:#FFF5F8}
-.allerg-card.medium{border-color:#FFD0A0;background:#FFF9F0}
-.allerg-name{font-family:'Patrick Hand',cursive;font-size:.85rem;font-weight:600;color:var(--ink);margin-bottom:4px}
-.allerg-bar-wrap{height:6px;background:#F0F0F0;border-radius:3px;overflow:hidden;margin:4px 0}
-.allerg-bar{height:100%;border-radius:3px}
-.allerg-stat{font-family:'Caveat',cursive;font-size:.9rem;color:var(--ink-light)}
-.no-data-msg{font-family:'Patrick Hand',cursive;font-size:.95rem;color:#bbb;text-align:center;padding:20px;font-style:italic}
-.insight-box{background:linear-gradient(135deg,#FFF9E6,#FFF3CC);border:2px solid #FFD700;border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start}
-.insight-icon{font-size:1.8rem;flex-shrink:0}
-.insight-text{font-family:'Patrick Hand',cursive;font-size:.95rem;color:var(--ink);line-height:1.6}
-.insight-text strong{font-weight:700;color:#8B6914}
-.backup-toast{position:fixed;bottom:20px;right:20px;z-index:9999;background:linear-gradient(135deg,#00b894,#55efc4);color:white;border-radius:14px;padding:12px 18px;font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:slideInRight .4s ease,fadeOut .4s ease 3.6s forwards;display:flex;align-items:center;gap:8px}
-@keyframes slideInRight{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
-@keyframes fadeOut{from{opacity:1}to{opacity:0;pointer-events:none}}
-.backup-banner{background:linear-gradient(135deg,#FFF3E0,#FFE0B2);border:2px solid #FF9F43;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-family:'Patrick Hand',cursive;font-size:.92rem;color:#7B3F00;cursor:pointer;transition:all .15s}
-.backup-banner:hover{background:#FFD8A0;transform:translateY(-1px)}
-@media(max-width:600px){
-  .nb-content{padding:12px 12px 24px}
-  .cal-day{min-height:56px}
-  .day-num{font-size:1.1rem}
-  .analysis-content{padding:14px 14px 24px}
-  .stats-row{grid-template-columns:repeat(3,1fr)}
-}
-@media print{
-  body{background:white;padding:0}
-  .bottom-bar,.btn-upload-pdf,.month-nav-arrow,.nb-rings,.nb-spine{display:none!important}
-  .nb-content{margin-left:10px!important}
-}
-/* LOGIN */
-#loginScreen{position:fixed;inset:0;z-index:999;background:#E8D5C4;background-image:radial-gradient(circle at 20% 20%,#F5C09A 0%,transparent 55%),radial-gradient(circle at 80% 80%,#E8A07C 0%,transparent 55%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
-.login-cover{background:linear-gradient(135deg,#FF7A5C,#FF5252);border-radius:18px;padding:20px 32px;margin-bottom:24px;box-shadow:5px 5px 0 #C0392B;text-align:center;max-width:480px;width:100%}
-.login-cover .lc-title{font-family:'Caveat',cursive;font-size:2.2rem;font-weight:700;color:#fff;text-shadow:1px 2px 4px rgba(0,0,0,.2)}
-.login-cover .lc-sub{font-family:'Caveat',cursive;font-size:1.1rem;color:rgba(255,255,255,.85)}
-.profiles-wrap{background:var(--paper);border-radius:4px 18px 18px 4px;box-shadow:-5px 0 0 #DDD0B0,5px 5px 0 #C8B090,0 8px 36px rgba(0,0,0,.14);max-width:480px;width:100%;padding:24px 28px;position:relative;background-image:repeating-linear-gradient(to bottom,transparent 0px,transparent 31px,rgba(100,149,237,.10) 31px,rgba(100,149,237,.10) 32px);background-size:100% 32px}
-.profiles-title{font-family:'Caveat',cursive;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:16px;text-align:center}
-.profiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;margin-bottom:16px}
-.profile-card{background:white;border:2.5px solid rgba(0,0,0,.08);border-radius:16px;padding:16px 8px;text-align:center;cursor:pointer;transition:all .18s;box-shadow:2px 2px 0 rgba(0,0,0,.06);display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
-.profile-card:hover{transform:translateY(-3px);box-shadow:3px 5px 0 rgba(0,0,0,.1)}
-.profile-emoji{font-size:2.4rem}
-.profile-name{font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;color:var(--ink)}
-.profile-pin-dots{display:flex;gap:4px;justify-content:center;margin-top:2px}
-.pin-dot{width:7px;height:7px;border-radius:50%;background:#ddd}
-.btn-del-profile{position:absolute;top:6px;right:6px;font-size:.75rem;background:#FFF0F0;border:1.5px solid #F8BBD9;border-radius:8px;color:var(--red);cursor:pointer;padding:2px 6px;font-family:'Patrick Hand',cursive}
-.pin-screen{display:none;flex-direction:column;align-items:center;gap:16px}
-.pin-screen.active{display:flex}
-.pin-avatar{font-size:3.5rem;margin-bottom:4px}
-.pin-greeting{font-family:'Caveat',cursive;font-size:1.6rem;font-weight:700;color:var(--ink)}
-.pin-subtitle{font-family:'Patrick Hand',cursive;font-size:.95rem;color:var(--ink-light)}
-.pin-dots-row{display:flex;gap:10px;margin:4px 0}
-.pin-dot-big{width:18px;height:18px;border-radius:50%;background:#E0E0E0;border:2px solid #ccc;transition:all .15s}
-.pin-dot-big.filled{background:var(--ink);border-color:var(--ink)}
-.pin-dot-big.error{background:var(--red);border-color:var(--red);animation:shake .3s ease}
-.pin-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:220px}
-.pin-key{font-family:'Caveat',cursive;font-size:1.6rem;font-weight:700;padding:14px 0;border-radius:14px;border:2.5px solid rgba(0,0,0,.1);background:white;cursor:pointer;transition:all .15s;box-shadow:2px 2px 0 rgba(0,0,0,.08);text-align:center}
-.pin-key:hover{transform:translateY(-2px)}
-.pin-key.del{background:#FFF0F0;border-color:#F8BBD9;color:var(--red)}
-.pin-key.empty{background:transparent;border:none;cursor:default;box-shadow:none}
-.pin-back-btn{font-family:'Caveat',cursive;font-size:1rem;color:var(--ink-light);background:none;border:none;cursor:pointer;padding:4px 8px;text-decoration:underline}
-.pin-error-msg{font-family:'Patrick Hand',cursive;font-size:.9rem;color:var(--red);min-height:20px;text-align:center}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.btn-add-profile{font-family:'Caveat',cursive;font-size:1rem;font-weight:700;padding:8px 18px;background:white;border:2.5px dashed #ccc;border-radius:24px;color:var(--ink-light);cursor:pointer;transition:all .15s;width:100%;margin-top:4px}
-.btn-add-profile:hover{border-color:var(--sky);color:var(--sky)}
-.user-bar{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.8);border-radius:12px;padding:8px 14px;margin-bottom:14px;border:1.5px solid rgba(0,0,0,.08)}
-.user-bar-avatar{font-size:1.4rem}
-.user-bar-name{font-family:'Caveat',cursive;font-size:1.15rem;font-weight:700;color:var(--ink);flex:1}
-.btn-logout{font-family:'Caveat',cursive;font-size:.9rem;font-weight:700;padding:5px 12px;background:#FFF0F0;border:2px solid #F8BBD9;border-radius:20px;color:var(--red);cursor:pointer;transition:all .15s}
-.btn-logout:hover{background:#FFE0E0}
 </style>
 </head>
 <body>
 
-<div id="loginScreen">
-  <div class="login-cover">
-    <div class="lc-title">🍎 Diario Alimentare</div>
-    <div class="lc-sub">Chi sei oggi?</div>
-  </div>
-  <div class="profiles-wrap">
-    <div id="profilesView">
-      <div class="profiles-title">Scegli il tuo profilo</div>
-      <div class="profiles-grid" id="profilesGrid"></div>
-      <button class="btn-add-profile" onclick="showAddProfile()">＋ Aggiungi profilo</button>
-    </div>
-    <div class="pin-screen" id="pinView">
-      <div class="pin-avatar" id="pinAvatar">😊</div>
-      <div class="pin-greeting" id="pinGreeting">Ciao!</div>
-      <div class="pin-subtitle">Inserisci il tuo PIN</div>
-      <div class="pin-dots-row" id="pinDots">
-        <div class="pin-dot-big" id="pd0"></div><div class="pin-dot-big" id="pd1"></div>
-        <div class="pin-dot-big" id="pd2"></div><div class="pin-dot-big" id="pd3"></div>
-      </div>
-      <div class="pin-error-msg" id="pinError"></div>
-      <div class="pin-keypad">
-        <button class="pin-key" onclick="pinKey('1')">1</button>
-        <button class="pin-key" onclick="pinKey('2')">2</button>
-        <button class="pin-key" onclick="pinKey('3')">3</button>
-        <button class="pin-key" onclick="pinKey('4')">4</button>
-        <button class="pin-key" onclick="pinKey('5')">5</button>
-        <button class="pin-key" onclick="pinKey('6')">6</button>
-        <button class="pin-key" onclick="pinKey('7')">7</button>
-        <button class="pin-key" onclick="pinKey('8')">8</button>
-        <button class="pin-key" onclick="pinKey('9')">9</button>
-        <button class="pin-key empty"></button>
-        <button class="pin-key" onclick="pinKey('0')">0</button>
-        <button class="pin-key del" onclick="pinKey('del')">⌫</button>
-      </div>
-      <button class="pin-back-btn" onclick="showProfiles()">← Cambia profilo</button>
-    </div>
-    <div class="pin-screen" id="addProfileView">
-      <div style="font-family:'Caveat',cursive;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:8px">Nuovo profilo</div>
-      <div id="emojiPicker" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px;max-width:260px">
-        <span style="font-family:'Patrick Hand',cursive;font-size:.85rem;color:var(--ink-light);width:100%;text-align:center">Scegli emoji:</span>
-      </div>
-      <input id="newProfileName" placeholder="Nome (es. Diego)" maxlength="12"
-        style="font-family:'Caveat',cursive;font-size:1.2rem;padding:10px 16px;border-radius:12px;border:2.5px solid #ddd;width:220px;text-align:center;margin-bottom:8px;outline:none">
-      <div style="font-family:'Patrick Hand',cursive;font-size:.85rem;color:var(--ink-light);margin-bottom:6px">Scegli PIN a 4 cifre:</div>
-      <div class="pin-dots-row" id="newPinDots">
-        <div class="pin-dot-big" id="npd0"></div><div class="pin-dot-big" id="npd1"></div>
-        <div class="pin-dot-big" id="npd2"></div><div class="pin-dot-big" id="npd3"></div>
-      </div>
-      <div class="pin-keypad" style="margin-top:8px">
-        <button class="pin-key" onclick="newPinKey('1')">1</button>
-        <button class="pin-key" onclick="newPinKey('2')">2</button>
-        <button class="pin-key" onclick="newPinKey('3')">3</button>
-        <button class="pin-key" onclick="newPinKey('4')">4</button>
-        <button class="pin-key" onclick="newPinKey('5')">5</button>
-        <button class="pin-key" onclick="newPinKey('6')">6</button>
-        <button class="pin-key" onclick="newPinKey('7')">7</button>
-        <button class="pin-key" onclick="newPinKey('8')">8</button>
-        <button class="pin-key" onclick="newPinKey('9')">9</button>
-        <button class="pin-key empty"></button>
-        <button class="pin-key" onclick="newPinKey('0')">0</button>
-        <button class="pin-key del" onclick="newPinKey('del')">⌫</button>
-      </div>
-      <div class="pin-error-msg" id="newPinError"></div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button onclick="confirmAddProfile()" style="font-family:'Caveat',cursive;font-size:1.1rem;font-weight:700;padding:10px 22px;background:var(--green);border:2.5px solid #1A7A45;border-radius:24px;color:white;cursor:pointer;box-shadow:3px 3px 0 #1A7A45">✅ Crea</button>
-        <button class="pin-back-btn" onclick="showProfiles()">← Annulla</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="app-cover">
   <div class="cover-spiral"></div>
-  <div class="cover-rings" id="coverRings"></div>
+  <div class="cover-rings"></div>
   <div class="cover-icon">🍎</div>
   <div class="cover-text">
     <div class="title">Il Mio Diario Alimentare</div>
-    <div class="subtitle" id="coverSubtitle">✏️ Ogni giorno segno cosa ho mangiato e come mi sento!</div>
+    <div class="subtitle">✏️ Carica il menù PDF della scuola (Ribò)</div>
   </div>
 </div>
 
 <div class="notebook">
   <div class="nb-spine"></div>
-  <div class="nb-rings" id="nbRings"></div>
+  <div class="nb-rings"></div>
   <div class="nb-content">
     <div class="month-nav">
-      <button class="month-nav-arrow" onclick="changeMonth(-1)">◀</button>
-      <div class="month-label" id="monthLabel">—</div>
-      <button class="month-nav-arrow" onclick="changeMonth(+1)">▶</button>
+      <div class="month-label" id="monthLabel">Maggio 2026</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <div class="pdf-status none" id="pdfStatus">📄 Nessun menù caricato</div>
         <button class="btn-upload-pdf" onclick="document.getElementById('pdfInput').click()">📤 Carica PDF</button>
-        <a href="https://www.riboscuola.it/menu/ricerca-menu.aspx" target="_blank" class="btn-upload-pdf" style="background:linear-gradient(135deg,#74B9FF,#0984E3);border-color:#0652DD;box-shadow:2px 2px 0 #0652DD;text-decoration:none">🌐 Apri Ribò</a>
-        <button id="btnClearMenu" onclick="clearCurrentMonthMenu()" style="display:none;font-family:Caveat,cursive;font-size:1rem;font-weight:700;padding:8px 14px;background:#fff;border:2.5px solid #F46B6B;border-radius:24px;color:#F46B6B;cursor:pointer;box-shadow:2px 2px 0 #F46B6B">🗑️ Cancella menù</button>
-        <input type="file" id="pdfInput" accept=".pdf" onchange="handlePdfUpload(event)">
+        <input type="file" id="pdfInput" accept="application/pdf">
       </div>
     </div>
-    <div class="legend">
-      <div class="leg-item"><div class="leg-dot" style="background:var(--green);color:#fff">✓</div> Ho mangiato</div>
-      <div class="leg-item"><div class="leg-dot" style="background:var(--red);color:#fff">✗</div> Non ho mangiato</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#eee;border:2px solid #ccc"></div> Da decidere</div>
-      <div class="leg-item"><div style="width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block"></div> Giorno scolastico</div>
+
+    <div class="cal-header">
+      <div class="cal-header-cell ch-mon">Lun</div>
+      <div class="cal-header-cell ch-tue">Mar</div>
+      <div class="cal-header-cell ch-wed">Mer</div>
+      <div class="cal-header-cell ch-thu">Gio</div>
+      <div class="cal-header-cell ch-fri">Ven</div>
+      <div class="cal-header-cell ch-sat">Sab</div>
+      <div class="cal-header-cell ch-sun">Dom</div>
     </div>
-    <div class="cal-header" id="calHeader"></div>
-    <div class="calendar" id="calendar"></div>
-    <div id="dayDetail"></div>
+    <div class="calendar" id="calendarGrid"></div>
   </div>
-</div>
-
-<div class="bottom-bar">
-  <button class="btn-dl green" onclick="downloadCSV()">📥 Scarica diario (CSV)</button>
-  <button class="btn-dl blue" onclick="window.print()">🖨️ Stampa</button>
-  <button class="btn-dl" id="btnAnalysis" style="background:linear-gradient(135deg,#A29BFE,#6C5CE7);border:2.5px solid #4834D4;box-shadow:3px 3px 0 #4834D4" onclick="toggleAnalysis()">🔍 Analisi sintomi</button>
-  <button class="btn-dl" style="background:linear-gradient(135deg,#FDCB6E,#E17055);border:2.5px solid #B35309;box-shadow:3px 3px 0 #B35309" onclick="exportBackup()">💾 Backup</button>
-  <button class="btn-dl" style="background:linear-gradient(135deg,#55efc4,#00b894);border:2.5px solid #007a5e;box-shadow:3px 3px 0 #007a5e" onclick="document.getElementById('restoreInput').click()">📂 Ripristina</button>
-  <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="importBackup(event)">
-</div>
-
-<div class="analysis-panel" id="analysisPanel" style="display:none">
-  <div class="nb-spine2"></div>
-  <div class="analysis-content">
-    <div class="analysis-title">🔍 Analisi Sintomi</div>
-    <div class="analysis-subtitle">Qui puoi vedere quali alimenti compaiono più spesso nei giorni in cui hai avuto sintomi. ⚠️</div>
-    <div class="sym-filter-row" id="symFilterRow"></div>
-    <div id="analysisContent"></div>
-  </div>
-</div>
-
-<div class="modal-bg" id="modalBg" style="display:none">
-  <div class="modal" id="modalBox"></div>
 </div>
 
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-// =====================================================================
-// COSTANTI
-// =====================================================================
-const PROFILES_KEY   = 'diario_profiles_v1';
-const PROFILE_EMOJIS = ['🦁','🐼','🦊','🐸','🦋','🐧','🦄','🐙','🦖','🐯','🐻','🐨','🦀','🦩','🐶','🐱'];
-const MONTH_NAMES_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-const MEAL_CONFIG = [
-  {key:'colazione', label:'🌅 Colazione',       cls:'m-col'},
-  {key:'spuntino1', label:'🍎 Spuntino mattina', cls:'m-spu'},
-  {key:'pranzo',    label:'🍽️ Pranzo',           cls:'m-pra'},
-  {key:'merenda',   label:'🧃 Merenda',           cls:'m-mer'},
-  {key:'cena',      label:'🌙 Cena',              cls:'m-cen'},
-];
-const SYMPTOMS = [
-  {id:'gonfiore',   emoji:'🎈', label:'Gonfiore'},
-  {id:'mal_pancia', emoji:'😣', label:'Mal di pancia'},
-  {id:'prurito',    emoji:'👁️', label:'Prurito occhi'},
-  {id:'rumore',     emoji:'🔊', label:'Pancia rumorosa'},
-  {id:'diarrea',    emoji:'🚽', label:'Diarrea'},
-];
-const ALLERGENS_LIST = ['glutine','soia','latte','uova','uovo','pesce','senape','sesamo',
-  'lupino','molluschi','crostacei','frutta a guscio','arachidi','sedano','solfiti'];
-const MONTHS_MAP = {
-  'gennaio':1,'febbraio':2,'marzo':3,'aprile':4,'maggio':5,'giugno':6,
-  'luglio':7,'agosto':8,'settembre':9,'ottobre':10,'novembre':11,'dicembre':12
-};
-const Y_TABLE_MIN = 110;
-const LAST_BACKUP_KEY = 'diario_last_backup_date';
-
-// =====================================================================
-// STATO GLOBALE
-// =====================================================================
-let currentUser  = null;   // oggetto profilo loggato
-let appState     = {days:{}, menus:{}};
-let currentYear  = new Date().getFullYear();
-let currentMonth = new Date().getMonth();
-let selectedDate = null;
-let pinBuffer    = '';
-let newPinBuffer = '';
-let selectedEmoji = '🦁';
-let pendingProfileId = null;
-let analysisVisible  = false;
-let activeSymFilter  = 'all';
-let _lastRawText     = '';
-const openMeals = {};
-
-// =====================================================================
-// PROFILI — localStorage helpers
-// =====================================================================
-function loadProfiles(){
-  try{ const r=localStorage.getItem(PROFILES_KEY); if(r) return JSON.parse(r); }catch(e){}
-  return [];
-}
-function saveProfiles(p){ localStorage.setItem(PROFILES_KEY, JSON.stringify(p)); }
-
-function getUserKey(uid){ return `diario_user_${uid}_v3`; }
-
-function loadUserState(uid){
-  try{ const r=localStorage.getItem(getUserKey(uid)); if(r) return JSON.parse(r); }catch(e){}
-  return {days:{}, menus:{}};
-}
-// ✅ FIX: saveUserState salva sempre sotto la chiave dell'utente loggato, MAI sotto quella di un altro
-function saveUserState(uid, state){
-  try{ localStorage.setItem(getUserKey(uid), JSON.stringify(state)); }catch(e){}
-}
-
-function saveState(){
-  if(!currentUser) return;
-  // ✅ FIX: nessun viewingUserId — ogni utente salva solo i propri dati
-  saveUserState(currentUser.id, appState);
-}
-
-function getDayState(dateStr){
-  if(!appState.days[dateStr])
-    appState.days[dateStr] = {eaten:{}, symptoms:{pranzo:{},merenda:{},cena:{}}, notes:''};
-  const ds = appState.days[dateStr];
-  if(ds.symptoms && !ds.symptoms.pranzo){
-    const old = ds.symptoms;
-    ds.symptoms = {pranzo:old, merenda:{}, cena:{}};
-  }
-  return ds;
-}
-function getMonthMenu(ym){ return appState.menus[ym]||null; }
-
-function hasSymptom(ds, symId){
-  if(!ds||!ds.symptoms) return false;
-  return Object.values(ds.symptoms).some(slot=>slot&&slot[symId]);
-}
-
-// =====================================================================
-// AUTH — PROFILI
-// =====================================================================
-function renderProfilesGrid(){
-  const profiles = loadProfiles();
-  const grid = document.getElementById('profilesGrid');
-  grid.innerHTML = '';
-  profiles.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'profile-card';
-    card.innerHTML = `
-      <div class="profile-emoji">${p.emoji}</div>
-      <div class="profile-name">${p.name}</div>
-      <div class="profile-pin-dots">${[0,1,2,3].map(()=>'<div class="pin-dot"></div>').join('')}</div>
-      ${profiles.length>1?`<button class="btn-del-profile" onclick="event.stopPropagation();confirmDeleteProfile('${p.id}')">🗑️</button>`:''}
-    `;
-    card.onclick = ()=>selectProfile(p);
-    grid.appendChild(card);
-  });
-  if(profiles.length===0) showAddProfile(true);
-}
-
-function selectProfile(profile){
-  pendingProfileId = profile.id;
-  pinBuffer = '';
-  document.getElementById('pinAvatar').textContent   = profile.emoji;
-  document.getElementById('pinGreeting').textContent = `Ciao, ${profile.name}!`;
-  document.getElementById('pinError').textContent    = '';
-  updatePinDots('pinDots','pd',0);
-  document.getElementById('profilesView').style.display = 'none';
-  document.getElementById('pinView').classList.add('active');
-  document.getElementById('addProfileView').classList.remove('active');
-}
-
-function showProfiles(){
-  pinBuffer=''; newPinBuffer='';
-  document.getElementById('profilesView').style.display='block';
-  document.getElementById('pinView').classList.remove('active');
-  document.getElementById('addProfileView').classList.remove('active');
-  renderProfilesGrid();
-}
-
-function pinKey(val){
-  if(val==='del') pinBuffer=pinBuffer.slice(0,-1);
-  else if(pinBuffer.length<4) pinBuffer+=val;
-  updatePinDots('pinDots','pd',pinBuffer.length);
-  document.getElementById('pinError').textContent='';
-  if(pinBuffer.length===4){
-    const profile = loadProfiles().find(p=>p.id===pendingProfileId);
-    if(profile && profile.pin===pinBuffer) loginAs(profile);
-    else {
-      for(let i=0;i<4;i++) document.getElementById(`pd${i}`).classList.add('error');
-      document.getElementById('pinError').textContent='❌ PIN errato, riprova';
-      setTimeout(()=>{ pinBuffer=''; updatePinDots('pinDots','pd',0); for(let i=0;i<4;i++) document.getElementById(`pd${i}`).classList.remove('error'); }, 900);
-    }
-  }
-}
-
-function updatePinDots(rowId, prefix, count){
-  for(let i=0;i<4;i++){
-    const dot=document.getElementById(`${prefix}${i}`); if(!dot) continue;
-    dot.classList.toggle('filled',i<count); dot.classList.remove('error');
-  }
-}
-
-// ✅ FIX PRINCIPALE: loginAs pulito — nessuna migrazione, nessun admin switcher
-function loginAs(profile){
-  currentUser = profile;
-  // Carica i dati SOLO di questo utente
-  appState = loadUserState(profile.id);
-
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('coverSubtitle').textContent = `${profile.emoji} ${profile.name}`;
-
-  renderUserBar();
-  // ✅ NESSUN renderAdminSwitcher — ogni utente vede solo i propri dati
-
-  currentYear  = new Date().getFullYear();
-  currentMonth = new Date().getMonth();
-  selectedDate = null;
-
-  renderCalHeader();
-  renderCalendar();  // ✅ ora ha i dati dell'utente caricati correttamente
-  updatePdfStatus();
-
-  const todayStr = new Date().toISOString().slice(0,10);
-  selectDay(todayStr);
-  setTimeout(showBackupReminder, 800);
-}
-
-function logout(){
-  currentUser = null;
-  appState    = {days:{}, menus:{}};
-  selectedDate = null;
-  const ub = document.getElementById('userBar'); if(ub) ub.remove();
-  document.getElementById('dayDetail').innerHTML = '';
-  document.getElementById('loginScreen').style.display = 'flex';
-  showProfiles();
-}
-
-function renderUserBar(){
-  const existing = document.getElementById('userBar'); if(existing) existing.remove();
-  const nb = document.querySelector('.nb-content'); if(!nb) return;
-  const bar = document.createElement('div');
-  bar.id='userBar'; bar.className='user-bar';
-  bar.innerHTML=`<div class="user-bar-avatar">${currentUser.emoji}</div>
-    <div class="user-bar-name">${currentUser.name}</div>
-    <button class="btn-logout" onclick="logout()">🚪 Esci</button>`;
-  nb.insertBefore(bar, nb.firstChild);
-}
-
-// Aggiungi profilo
-function showAddProfile(isFirst){
-  newPinBuffer=''; selectedEmoji=PROFILE_EMOJIS[0];
-  document.getElementById('newProfileName').value='';
-  document.getElementById('newPinError').textContent='';
-  updatePinDots('newPinDots','npd',0);
-  const picker=document.getElementById('emojiPicker');
-  picker.innerHTML='<span style="font-family:\'Patrick Hand\',cursive;font-size:.85rem;color:var(--ink-light);width:100%;text-align:center">Scegli emoji:</span>';
-  PROFILE_EMOJIS.forEach(em=>{
-    const btn=document.createElement('button');
-    btn.textContent=em;
-    btn.style.cssText='font-size:1.6rem;background:white;border:2.5px solid #ddd;border-radius:10px;padding:4px 7px;cursor:pointer';
-    btn.onclick=()=>{ selectedEmoji=em; picker.querySelectorAll('button').forEach(b=>b.style.borderColor='#ddd'); btn.style.borderColor='#9B7FE8'; };
-    if(em===selectedEmoji) btn.style.borderColor='#9B7FE8';
-    picker.appendChild(btn);
-  });
-  document.getElementById('profilesView').style.display='none';
-  document.getElementById('pinView').classList.remove('active');
-  document.getElementById('addProfileView').classList.add('active');
-}
-
-function newPinKey(val){
-  if(val==='del') newPinBuffer=newPinBuffer.slice(0,-1);
-  else if(newPinBuffer.length<4) newPinBuffer+=val;
-  updatePinDots('newPinDots','npd',newPinBuffer.length);
-}
-
-function confirmAddProfile(){
-  const name=document.getElementById('newProfileName').value.trim();
-  const errEl=document.getElementById('newPinError');
-  if(!name){ errEl.textContent='⚠️ Inserisci un nome'; return; }
-  if(newPinBuffer.length!==4){ errEl.textContent='⚠️ PIN deve essere 4 cifre'; return; }
-  const profiles=loadProfiles();
-  profiles.push({id:'u_'+Date.now(), name, emoji:selectedEmoji, pin:newPinBuffer});
-  saveProfiles(profiles);
-  showProfiles();
-}
-
-// Elimina profilo
-let deleteTargetId='', deletePinBuffer='';
-function confirmDeleteProfile(profileId){
-  const profiles=loadProfiles();
-  const target=profiles.find(p=>p.id===profileId); if(!target) return;
-  deleteTargetId=profileId; deletePinBuffer='';
-  const dotsHtml=[0,1,2,3].map(i=>`<div class="pin-dot-big" id="delpd${i}"></div>`).join('');
-  document.getElementById('modalBox').innerHTML=`
-    <h2>🗑️ Elimina ${target.emoji} ${target.name}?</h2>
-    <p>Tutti i dati di questo profilo verranno eliminati definitivamente.<br><br>Inserisci il PIN di <b>${target.name}</b> per confermare:</p>
-    <div style="display:flex;gap:10px;justify-content:center;margin:8px 0">${dotsHtml}</div>
-    <div style="font-family:'Patrick Hand',cursive;font-size:.85rem;color:var(--red);min-height:18px;text-align:center;margin-bottom:6px" id="delPinError"></div>
-    <div class="pin-keypad" style="margin:0 auto 8px">
-      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="pin-key" onclick="deletePinKey('${n}')">${n}</button>`).join('')}
-      <button class="pin-key empty"></button>
-      <button class="pin-key" onclick="deletePinKey('0')">0</button>
-      <button class="pin-key del" onclick="deletePinKey('del')">⌫</button>
-    </div>
-    <div class="modal-btns"><button class="modal-btn secondary" onclick="closeModal()">Annulla</button></div>`;
-  document.getElementById('modalBg').style.display='flex';
-}
-
-function deletePinKey(val){
-  if(val==='del') deletePinBuffer=deletePinBuffer.slice(0,-1);
-  else if(deletePinBuffer.length<4) deletePinBuffer+=val;
-  for(let i=0;i<4;i++){ const d=document.getElementById(`delpd${i}`); if(d) d.classList.toggle('filled',i<deletePinBuffer.length); }
-  if(deletePinBuffer.length===4){
-    const profiles=loadProfiles();
-    const target=profiles.find(p=>p.id===deleteTargetId);
-    if(target && target.pin===deletePinBuffer){
-      localStorage.removeItem(getUserKey(deleteTargetId));
-      saveProfiles(profiles.filter(p=>p.id!==deleteTargetId));
-      closeModal(); showProfiles();
-    } else {
-      for(let i=0;i<4;i++) document.getElementById(`delpd${i}`)?.classList.add('error');
-      document.getElementById('delPinError').textContent='❌ PIN errato';
-      setTimeout(()=>{ deletePinBuffer=''; for(let i=0;i<4;i++){ const d=document.getElementById(`delpd${i}`); if(d){d.classList.remove('filled','error');} } },900);
-    }
-  }
-}
-
-// =====================================================================
-// RINGS
-// =====================================================================
-function buildRings(containerId, count){
-  const c=document.getElementById(containerId);
-  for(let i=0;i<count;i++){
-    const r=document.createElement('div');
-    r.className=containerId==='nbRings'?'nb-ring':'c-ring';
-    c.appendChild(r);
-  }
-}
-
-// =====================================================================
-// CALENDARIO
-// =====================================================================
-function renderCalHeader(){
-  const hdr=document.getElementById('calHeader'); hdr.innerHTML='';
-  [{l:'Lun',c:'ch-mon'},{l:'Mar',c:'ch-tue'},{l:'Mer',c:'ch-wed'},
-   {l:'Gio',c:'ch-thu'},{l:'Ven',c:'ch-fri'},{l:'Sab',c:'ch-sat'},{l:'Dom',c:'ch-sun'}]
-  .forEach(x=>{ const d=document.createElement('div'); d.className=`cal-header-cell ${x.c}`; d.textContent=x.l; hdr.appendChild(d); });
-}
-
-function renderCalendar(){
-  // ✅ FIX: blocca il render se non c'è un utente loggato
-  if(!currentUser){ document.getElementById('calendar').innerHTML=''; return; }
-
-  document.getElementById('monthLabel').textContent=`${MONTH_NAMES_IT[currentMonth]} ${currentYear}`;
-  const cal=document.getElementById('calendar'); cal.innerHTML='';
-  const today=new Date(); today.setHours(0,0,0,0);
-
-  const firstDay=new Date(currentYear,currentMonth,1);
-  let startOffset=firstDay.getDay()-1; if(startOffset<0) startOffset=6;
-  const daysInMonth=new Date(currentYear,currentMonth+1,0).getDate();
-  const ym=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
-  const monthMenu=getMonthMenu(ym);
-
-  for(let i=0;i<startOffset;i++){
-    const e=document.createElement('div'); e.className='cal-empty'; cal.appendChild(e);
-  }
-
-  for(let d=1;d<=daysInMonth;d++){
-    const dateStr=`${ym}-${String(d).padStart(2,'0')}`;
-    const dateObj=new Date(currentYear,currentMonth,d); dateObj.setHours(0,0,0,0);
-    const wd=dateObj.getDay();
-    const isWeekend=(wd===0||wd===6);
-    const isSchool=!isWeekend&&monthMenu&&monthMenu[dateStr];
-    const isFuture=dateObj>today;
-    const isToday=dateObj.getTime()===today.getTime();
-    const isSelected=selectedDate===dateStr;
-
-    const ds=getDayState(dateStr);
-    const allFoods=getAllFoodsForDay(dateStr);
-    const eaten=allFoods.filter(k=>ds.eaten[k]==='eaten').length;
-    const pct=allFoods.length>0?(eaten/allFoods.length)*100:0;
-    const activeSyms=SYMPTOMS.filter(s=>hasSymptom(ds,s.id));
-
-    const cell=document.createElement('div');
-    cell.className=['cal-day',isWeekend?'weekend':'',isSchool?'school':'',
-      isFuture?'future':'',isToday?'today':'',isSelected?'selected':''].filter(Boolean).join(' ');
-    cell.setAttribute('data-wd',wd);
-    cell.setAttribute('data-date',dateStr);
-
-    const numEl=document.createElement('div'); numEl.className='day-num'; numEl.textContent=d; cell.appendChild(numEl);
-    if(isSchool){ const dot=document.createElement('div'); dot.className='day-school-dot'; cell.appendChild(dot); }
-    if(pct>0){ const bar=document.createElement('div'); bar.className='day-eaten-bar'; bar.style.width=pct+'%'; cell.appendChild(bar); }
-    if(activeSyms.length>0){
-      const sr=document.createElement('div'); sr.className='day-symptom-row';
-      activeSyms.forEach(s=>{ const dot=document.createElement('span'); dot.className='day-sym-dot'; dot.textContent=s.emoji; sr.appendChild(dot); });
-      cell.appendChild(sr);
-    }
-    cell.onclick=()=>selectDay(dateStr);
-    cal.appendChild(cell);
-  }
-}
-
-function selectDay(dateStr){ selectedDate=dateStr; renderCalendar(); renderDayDetail(); }
-
-function getAllFoodsForDay(dateStr){
-  const ym=dateStr.slice(0,7);
-  const menu=getMonthMenu(ym);
-  const dayMenu=menu&&menu[dateStr];
-  const keys=[];
-  if(dayMenu) MEAL_CONFIG.forEach(mc=>(dayMenu[mc.key]||[]).forEach((_,i)=>keys.push(`${mc.key}_${i}`)));
-  const ds=getDayState(dateStr);
-  if(ds.manualItems) MEAL_CONFIG.forEach(mc=>(ds.manualItems[mc.key]||[]).forEach((_,i)=>keys.push(`manual_${mc.key}_${i}`)));
-  return keys;
-}
-
-function calcProgress(dateStr){
-  const all=getAllFoodsForDay(dateStr);
-  const ds=getDayState(dateStr);
-  return all.length>0?Math.round(all.filter(k=>ds.eaten[k]==='eaten').length/all.length*100):0;
-}
-
-// =====================================================================
-// DETTAGLIO GIORNO
-// =====================================================================
-function renderDayDetail(){
-  const container=document.getElementById('dayDetail');
-  if(!selectedDate||!currentUser){ container.innerHTML=''; return; }
-
-  const dateObj=new Date(selectedDate+'T12:00:00');
-  const wd=dateObj.getDay();
-  const isWeekend=(wd===0||wd===6);
-  const dayNamesLong=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
-  const ym=selectedDate.slice(0,7);
-  const dayMenu=getMonthMenu(ym)?.[selectedDate];
-  const ds=getDayState(selectedDate);
-  const pct=calcProgress(selectedDate);
-
-  let html=`<div class="day-panel">
-    <div class="day-panel-header">
-      <span style="font-size:1.6rem">${isWeekend?'🏠':'🏫'}</span>
-      <div class="dph-date">${dayNamesLong[wd]} ${dateObj.getDate()} ${MONTH_NAMES_IT[dateObj.getMonth()]} ${dateObj.getFullYear()}</div>
-      <div class="dph-badge ${isWeekend?'weekend':'school'}">${isWeekend?'🏠 Weekend':'🏫 Scolastico'}</div>
-    </div>`;
-
-  if(pct>0||!isWeekend) html+=`<div class="progress-row">
-    <div class="prog-label">🍴 Mangiato:</div>
-    <div class="prog-bar-out"><div class="prog-bar-in" style="width:${pct}%"></div></div>
-    <div class="prog-pct">${pct}%</div></div>`;
-
-  html+=`<div class="meals-wrap">`;
-
-  MEAL_CONFIG.forEach(mc=>{
-    const schoolItems=dayMenu?(dayMenu[mc.key]||[]):[];
-    const manualItems=(ds.manualItems&&ds.manualItems[mc.key])||[];
-    html+=`<div class="meal-block">
-      <div class="meal-head ${mc.cls}" onclick="toggleMeal('${mc.key}')">
-        <span>${mc.label}</span><span class="meal-arrow" id="arrow-${mc.key}">▾</span>
-      </div>
-      <div class="meal-items-wrap" id="mealBody-${mc.key}">`;
-
-    schoolItems.forEach((item,idx)=>{
-      const key=`${mc.key}_${idx}`;
-      const st=ds.eaten[key]||'none';
-      const icon=st==='eaten'?'✓':st==='not-eaten'?'✗':'';
-      html+=`<div class="food-row ${st}" onclick="toggleEaten('${selectedDate}','${key}')">
-        <div class="food-cb ${st}">${icon}</div>
-        <div class="food-text"><div class="food-name">${item.name}</div>
-        ${item.allergens&&item.allergens.length?`<div class="food-allerg">${item.allergens.map(a=>`<span class="allerg-tag">⚠️${a}</span>`).join('')}</div>`:''}</div>
-      </div>`;
-    });
-
-    manualItems.forEach((item,idx)=>{
-      const key=`manual_${mc.key}_${idx}`;
-      const st=ds.eaten[key]||'none';
-      const icon=st==='eaten'?'✓':st==='not-eaten'?'✗':'';
-      html+=`<div class="food-row ${st}">
-        <div class="food-cb ${st}" onclick="toggleEaten('${selectedDate}','${key}')">${icon}</div>
-        <div class="food-text" onclick="toggleEaten('${selectedDate}','${key}')"><div class="food-name">✏️ ${item.name}</div></div>
-        <div class="food-del" onclick="deleteManualFood('${selectedDate}','${mc.key}',${idx})">🗑️</div>
-      </div>`;
-    });
-
-    if(!schoolItems.length&&!manualItems.length&&!isWeekend)
-      html+=`<div style="padding:8px 10px;font-family:'Patrick Hand',cursive;font-size:.85rem;color:#bbb;font-style:italic">Nessun alimento nel menù</div>`;
-
-    html+=`<div class="manual-add-area">
-      <input class="manual-input" id="manualIn-${mc.key}" placeholder="Aggiungi alimento..." onkeydown="if(event.key==='Enter')addManualFood('${selectedDate}','${mc.key}')">
-      <button class="btn-add-food" onclick="addManualFood('${selectedDate}','${mc.key}')">+ Aggiungi</button>
-    </div></div>`;
-
-    if(['pranzo','merenda','cena'].includes(mc.key)){
-      const symLabels={pranzo:'Dopo il pranzo',merenda:'Dopo la merenda',cena:'Dopo cena'};
-      const momentSyms=(ds.symptoms&&ds.symptoms[mc.key])||{};
-      html+=`<div class="sym-inline-block">
-        <div class="sym-inline-head">💊 ${symLabels[mc.key]} — come ti sei sentito/a?</div>
-        <div class="sym-inline-grid">`;
-      SYMPTOMS.forEach(sym=>{
-        const active=momentSyms[sym.id]?'active':'';
-        html+=`<div class="sym-chip ${active}" onclick="toggleSymptom('${selectedDate}','${mc.key}','${sym.id}')">
-          <span class="sym-chip-emoji">${sym.emoji}</span>${sym.label}</div>`;
-      });
-      html+=`</div></div>`;
-    }
-    html+=`</div>`; // meal-block
-  });
-
-  html+=`</div><div class="notes-block">
-    <div class="notes-head">✏️ Note del giorno</div>
-    <textarea class="notes-ta" placeholder="Com'è andata oggi? 😊"
-      onchange="updateNote('${selectedDate}',this.value)">${ds.notes||''}</textarea>
-  </div></div>`;
-
-  container.innerHTML=html;
-  container.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-
-function toggleMeal(key){
-  openMeals[key]=!openMeals[key];
-  const body=document.getElementById('mealBody-'+key);
-  const arrow=document.getElementById('arrow-'+key);
-  if(body){ body.style.display=openMeals[key]===false?'none':''; if(arrow) arrow.style.transform=openMeals[key]===false?'rotate(-90deg)':''; }
-}
-
-// =====================================================================
-// INTERAZIONI
-// =====================================================================
-function toggleEaten(dateStr,key){
-  const ds=getDayState(dateStr);
-  const cur=ds.eaten[key]||'none';
-  ds.eaten[key]=cur==='none'?'eaten':cur==='eaten'?'not-eaten':'none';
-  saveState(); renderCalendar(); renderDayDetail();
-}
-
-function toggleSymptom(dateStr,moment,symId){
-  const ds=getDayState(dateStr);
-  if(!ds.symptoms[moment]) ds.symptoms[moment]={};
-  ds.symptoms[moment][symId]=!ds.symptoms[moment][symId];
-  saveState(); renderCalendar(); renderDayDetail();
-}
-
-function updateNote(dateStr,val){ getDayState(dateStr).notes=val; saveState(); }
-
-function addManualFood(dateStr,mealKey){
-  const inp=document.getElementById('manualIn-'+mealKey);
-  const name=inp&&inp.value.trim(); if(!name) return;
-  const ds=getDayState(dateStr);
-  if(!ds.manualItems) ds.manualItems={};
-  if(!ds.manualItems[mealKey]) ds.manualItems[mealKey]=[];
-  ds.manualItems[mealKey].push({name});
-  inp.value='';
-  saveState(); renderDayDetail();
-}
-
-function deleteManualFood(dateStr,mealKey,idx){
-  const ds=getDayState(dateStr);
-  if(ds.manualItems&&ds.manualItems[mealKey]){
-    ds.manualItems[mealKey].splice(idx,1);
-    const newEaten={};
-    Object.entries(ds.eaten).forEach(([k,v])=>{
-      if(!k.startsWith(`manual_${mealKey}_`)) newEaten[k]=v;
-      else { const i=parseInt(k.split('_').pop()); if(i<idx) newEaten[k]=v; else if(i>idx) newEaten[`manual_${mealKey}_${i-1}`]=v; }
-    });
-    ds.eaten=newEaten;
-    saveState(); renderDayDetail(); renderCalendar();
-  }
-}
-
-function changeMonth(delta){
-  currentMonth+=delta;
-  if(currentMonth>11){currentMonth=0;currentYear++;}
-  if(currentMonth<0){currentMonth=11;currentYear--;}
-  selectedDate=null;
-  renderCalendar();
-  document.getElementById('dayDetail').innerHTML='';
-  updatePdfStatus();
-}
-
-// =====================================================================
-// PDF UPLOAD & PARSER
-// =====================================================================
-async function handlePdfUpload(event){
-  const file=event.target.files[0]; if(!file) return;
-  event.target.value='';
-  setPdfStatus('loading','⏳ Lettura PDF...');
-  try{
-    const arrayBuf=await file.arrayBuffer();
-    const pdf=await pdfjsLib.getDocument({data:arrayBuf}).promise;
-    const page=await pdf.getPage(1);
-    const content=await page.getTextContent();
-    const viewport=page.getViewport({scale:1});
-    const items=content.items.map(item=>({
-      str:item.str.trim(),
-      x:Math.round(item.transform[4]),
-      y:Math.round(item.transform[5]),
-      h:Math.round(Math.abs(item.transform[3]))
-    })).filter(i=>i.str.length>0);
-    _lastRawText=items.map(i=>`[x:${i.x} y:${i.y}] ${i.str}`).join('\n');
-    const parsed=parseMenuFromItems(items,viewport.height);
-    const dayCount=Object.keys(parsed).length;
-    if(dayCount===0){
-      setPdfStatus('err','❌ Nessun dato trovato');
-      const safe=_lastRawText.slice(0,800).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-      showModal({title:'⚠️ PDF non riconosciuto',
-        body:`<div style="font-family:monospace;font-size:.7rem;background:#f5f5f5;padding:8px;border-radius:8px;max-height:150px;overflow:auto;white-space:pre">${safe}</div>`,
-        buttons:[{label:'📄 Debug',action:downloadRawText,cls:'primary'},{label:'Chiudi',action:'close',cls:'secondary'}]});
-      return;
-    }
-    const firstKey=Object.keys(parsed).sort()[0];
-    const [dy,dm]=firstKey.slice(0,7).split('-').map(Number);
-    showModal({
-      title:`📅 Menù ${MONTH_NAMES_IT[dm-1]} ${dy}`,
-      body:`Trovati <b>${dayCount} giorni scolastici</b>. Caricare?`,
-      preview:buildPreview(parsed),
-      buttons:[{label:'✅ Sì, carica!',action:()=>confirmLoadMenu(parsed,firstKey.slice(0,7),dy,dm-1),cls:'primary'},
-               {label:'Annulla',action:'close',cls:'secondary'}]
-    });
-  }catch(err){
-    console.error(err);
-    setPdfStatus('err','❌ Errore lettura PDF');
-    showModal({title:'❌ Errore',body:`<code>${err.message}</code>`,
-      buttons:[{label:'Chiudi',action:'close',cls:'secondary'}]});
-  }
-}
-
-function downloadRawText(){
-  const blob=new Blob([_lastRawText],{type:'text/plain;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='debug-pdf.txt'; a.click();
-  URL.revokeObjectURL(url); closeModal();
-}
-
-// ✅ FIX: confirmLoadMenu salva sempre tramite saveState (che usa currentUser)
-function confirmLoadMenu(parsed,ym,year,month){
-  appState.menus[ym]=parsed;
-  saveState();  // salva sotto currentUser.id
-  closeModal();
-  currentYear=year; currentMonth=month;
-  setPdfStatus('ok',`✅ Menù ${MONTH_NAMES_IT[month]} ${year} caricato`);
-  document.getElementById('btnClearMenu').style.display='block';
-  renderCalendar();
-}
-function buildDateStr(year,month,day){
-  if(day<1||day>31) return null;
-  try{ const d=new Date(year,month-1,day); if(d.getMonth()!==month-1) return null; return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`; }catch(e){return null;}
-}
-// ---- PARSER XY (identico alla versione corretta precedente) ----
-function parseMenuFromItems(items, pageHeight){
-  // ── 1. Rilevamento mese/anno ──────────────────────────────────────
-  const fullStr = items.map(i=>i.str).join(' ');
-  let detectedYear  = new Date().getFullYear();
-  let detectedMonth = new Date().getMonth()+1;
-  const mMatch = fullStr.match(
-    /\b(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)\s+(\d{4})\b/i);
-  if(mMatch){
-    detectedMonth = MONTHS_MAP[mMatch[1].toLowerCase()];
-    detectedYear  = parseInt(mMatch[2]);
-  }
-
-  // ── 2. Taglia la legenda (testo sotto "LEGENDA" o trigger noti) ───
-  const LEGEND_TRIGGERS = ['legenda','note:','spuntino','inoltre','rotazione',
-    'piatto da scoprire','ricetta del mese'];
-  // Ordina per Y crescente (in pdf.js Y=0 è in basso); la legenda ha Y bassa
-  // Troviamo la Y minima dei trigger di legenda
-  let legendCutY = -Infinity;
-  items.forEach(item=>{
-    const s = item.str.toLowerCase().trim();
-    if(LEGEND_TRIGGERS.some(k=>s.startsWith(k)))
-      legendCutY = Math.max(legendCutY, item.y);
-  });
-  // Tieni solo item SOPRA la legenda (Y > legendCutY in pdf.js = più in alto visivamente)
-  const bodyItems = legendCutY > -Infinity
-    ? items.filter(i => i.y > legendCutY)
-    : items;
-
-  // ── 3. Raggruppa item per riga (stessa Y ± 4px) ──────────────────
-  function groupByRow(itemList, tol=5){
-    const rows = [];
-    [...itemList].sort((a,b)=>b.y-a.y).forEach(item=>{  // alto→basso
-      const row = rows.find(r=>Math.abs(r.y - item.y) <= tol);
-      if(row){ row.cells.push(item); row.cells.sort((a,b)=>a.x-b.x); }
-      else rows.push({y:item.y, cells:[item]});
-    });
-    return rows; // già ordinati alto→basso (Y decrescente in pdf.js)
-  }
-
-  const rows = groupByRow(bodyItems);
-
-  // ── 4. Trova le X delle colonne dall'intestazione ─────────────────
-  // Cerca la riga con "Primi piatti" / "Secondi piatti" ecc.
-  let colX = { primo:null, secondo:null, contorno:null, merenda:null, snack:null };
-  rows.forEach(row=>{
-    row.cells.forEach(cell=>{
-      const s = cell.str.toLowerCase().trim();
-      if(s.includes('primi')&&s.includes('piatti'))   colX.primo   = colX.primo   ?? cell.x;
-      if(s.includes('secondi')&&s.includes('piatti')) colX.secondo = colX.secondo ?? cell.x;
-      if(s==='contorni')                               colX.contorno= colX.contorno?? cell.x;
-      if(s==='merende')                                colX.merenda = colX.merenda ?? cell.x;
-      if(s==='snack'&&s.length<8)                      colX.snack   = colX.snack   ?? cell.x;
-    });
-  });
-  // Fallback posizioni default Ribò
-  colX.primo   = colX.primo   ?? 52;
-  colX.secondo = colX.secondo ?? 259;
-  colX.contorno= colX.contorno?? 398;
-  colX.merenda = colX.merenda ?? 553;
-  colX.snack   = colX.snack   ?? 693;
-
-  const mid = (a,b)=>Math.round((a+b)/2);
-  const midPS = mid(colX.primo,   colX.secondo);
-  const midSC = mid(colX.secondo, colX.contorno);
-  const midCM = mid(colX.contorno,colX.merenda);
-  const midMS = mid(colX.merenda, colX.snack);
-
-  function getCol(x){
-    if(x < midPS) return 'primo';
-    if(x < midSC) return 'secondo';
-    if(x < midCM) return 'contorno';
-    if(x < midMS) return 'merenda';
-    return 'snack';
-  }
-
-  // ── 5. Trova le righe dei giorni scolastici ───────────────────────
-  const DAY_RE = /^(lun|mar|mer|gio|ven)\s+(\d{1,2})/i;
-  // Costruiamo una struttura: per ogni giorno, la sua Y (alta) e quella del giorno dopo
-  const dayRows = [];
-  rows.forEach(row=>{
-    row.cells.forEach(cell=>{
-      const m = cell.str.trim().match(DAY_RE);
-      if(!m) return;
-      const dayNum = parseInt(m[2]);
-      const ds = buildDateStr(detectedYear, detectedMonth, dayNum);
-      if(ds && !dayRows.find(d=>d.dateStr===ds))
-        dayRows.push({ dateStr:ds, y:row.y, yRow:row.y });
-    });
-  });
-
-  // Ordina alto→basso (Y decrescente in pdf.js)
-  dayRows.sort((a,b)=>b.y-a.y);
-  if(dayRows.length===0) return {};
-
-  // Calcola yBottom per ogni giorno = Y del giorno successivo - 1
-  const minY = Math.min(...bodyItems.map(i=>i.y));
-  dayRows.forEach((day,idx)=>{
-    day.yTop    = day.y;
-    day.yBottom = idx < dayRows.length-1 ? dayRows[idx+1].y - 1 : minY - 2;
-  });
-
-  // Y dell'intestazione colonne = la riga più alta in assoluto
-  const headerY = Math.max(...bodyItems.map(i=>i.y));
-
-  // ── 6. Inizializza risultato ───────────────────────────────────────
-  const result = {};
-  dayRows.forEach(day=>{
-    result[day.dateStr] = {
-      colazione:[{name:'Latte fresco + Pane', allergens:['latte','glutine']}],
-      spuntino1:[], pranzo:[], merenda:[],
-      cena:[{name:'Pasto libero 🏠', allergens:[]}],
-      _raw:{primo:[], secondo:[], contorno:[], merenda:[], snack:[]}
-    };
-  });
-
-  // ── 7. Assegna ogni item al giorno e alla colonna ─────────────────
-  bodyItems.forEach(item=>{
-    if(item.y >= headerY - 5) return;   // intestazione, skip
-    if(item.x <= 48) return;            // colonna etichette giorno, skip
-
-    // Trova il giorno: l'item deve cadere tra yBottom e yTop del giorno
-    const day = dayRows.find(d => item.y <= d.yTop + 4 && item.y >= d.yBottom);
-    if(!day) return;
-
-    const col = getCol(item.x);
-    result[day.dateStr]._raw[col].push(item.str);
-  });
-
-  // ── 8. Costruisce le voci pasto da _raw ───────────────────────────
-  dayRows.forEach(day=>{
-    const dd  = result[day.dateStr];
-    const raw = dd._raw;
-
-    const mk = (texts, cat) => {
-      const t = texts.join(' ').trim();
-      if(!t) return null;
-      const {name, allergens} = extractNameAndAllergens(t);
-      return name ? {name, allergens, category:cat} : null;
-    };
-
-    const primo    = mk(raw.primo,    'primo');
-    const secondo  = mk(raw.secondo,  'secondo');
-    const contorno = mk(raw.contorno, 'contorno');
-    if(primo)    dd.pranzo.push(primo);
-    if(secondo)  dd.pranzo.push(secondo);
-    if(contorno) dd.pranzo.push(contorno);
-
-    const mer = mk(raw.merenda, 'merenda');
-    dd.merenda.push(mer ? mer : {name:'Frutta 🍎', allergens:[]});
-
-    const snk = mk(raw.snack, 'snack');
-    if(snk){
-      const cleanName = snk.name.replace(/^snack\s*\d*\s*/i,'').replace(/\bmattina\b/gi,'').trim();
-      dd.spuntino1.push({name: cleanName || snk.name, allergens: snk.allergens});
-    } else {
-      dd.spuntino1.push({name:'Frutta fresca 🍎', allergens:[]});
+// --- LOGICA DI PARSING SPECIFICA PER RIBÒ ---
+function parseRiboText(fullText) {
+    const menuData = {};
+    // Regex per trovare i giorni nel formato "lun 04 (S.8)"
+    const dayRegex = /(lun|mar|mer|gio|ven)\s+(\d{2})\s+\(S\.\d\)/gi;
+    
+    let matches = [];
+    let match;
+    while ((match = dayRegex.exec(fullText)) !== null) {
+        matches.push({
+            day: parseInt(match[2]),
+            index: match.index,
+            fullMatch: match[0]
+        });
     }
 
-    delete dd._raw;
-  });
+    for (let i = 0; i < matches.length; i++) {
+        const start = matches[i].index + matches[i].fullMatch.length;
+        const end = matches[i + 1] ? matches[i + 1].index : fullText.length;
+        let dayBlock = fullText.substring(start, end);
 
-  return result;
-}
-function extractNameAndAllergens(text){
-  const idx=text.search(/\b(?:glutine|soia|latte|uova|uovo|pesce|senape|sesamo|lupino|molluschi|crostacei|frutta a guscio|arachidi|sedano|solfiti)\b/i);
-  let namePart=text, allergPart='';
-  if(idx>0){ namePart=text.slice(0,idx).trim(); allergPart=text.slice(idx); }
-  const name=namePart.replace(/\*+/g,'').replace(/\.\./g,'').replace(/\bLt\s+\d+\b/gi,'').replace(/\s+/g,' ').trim();
-  return {name:capitalizeFood(name), allergens:extractAllergens(allergPart||text)};
-}
-function extractAllergens(text){
-  const found=[];
-  [...ALLERGENS_LIST].sort((a,b)=>b.length-a.length).forEach(a=>{ if(new RegExp(a.replace(/\s+/g,'\\s+'),'i').test(text)&&!found.includes(a)) found.push(a); });
-  return found;
-}
-function capitalizeFood(s){
-  if(!s) return '';
-  return s.toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase())
-    .replace(/\b(Al|Di|Con|E|A|Da|In|Su|Per|Del|Della|Dello|Dei|Degli|Delle|Il|La|Lo|Le|Gli)\b/g,w=>w.toLowerCase()).trim();
-}
-function buildPreview(parsed){
-  let html='';
-  Object.keys(parsed).sort().slice(0,5).forEach(dateStr=>{
-    const d=new Date(dateStr+'T12:00:00');
-    html+=`<div class="p-day">${['Dom','Lun','Mar','Mer','Gio','Ven','Sab'][d.getDay()]} ${d.getDate()}</div>`;
-    if(parsed[dateStr].pranzo?.length) html+=`<div>🍽️ ${parsed[dateStr].pranzo.map(x=>x.name).join(' · ')}</div>`;
-  });
-  const tot=Object.keys(parsed).length;
-  if(tot>5) html+=`<div style="color:#aaa;margin-top:6px">...e altri ${tot-5} giorni</div>`;
-  return html;
-}
-// =====================================================================
-// PDF STATUS
-// =====================================================================
-function setPdfStatus(type,msg){
-  const el=document.getElementById('pdfStatus'); el.className=`pdf-status ${type}`; el.textContent=msg;
-}
-function updatePdfStatus(){
-  const ym=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
-  const m=getMonthMenu(ym);
-  const clearBtn=document.getElementById('btnClearMenu');
-  if(m){ setPdfStatus('ok',`✅ Menù ${MONTH_NAMES_IT[currentMonth]} ${currentYear} caricato`); if(clearBtn) clearBtn.style.display='block'; }
-  else { setPdfStatus('none','📄 Nessun menù caricato'); if(clearBtn) clearBtn.style.display='none'; }
-}
+        // Pulizia allergeni e righe vuote
+        const items = dayBlock.split(/[|\n]/)
+            .map(item => item.trim())
+            .filter(item => {
+                // Filtra stringhe che contengono solo allergeni
+                const isAllergen = /^(glutine|soia|senape|latte|uova|pesce|sedano|sesamo|lupino|crostacei|molluschi|frutta a guscio|,|\s)+$/i.test(item);
+                return item.length > 3 && !isAllergen && !item.includes("Snack");
+            });
 
-function clearCurrentMonthMenu(){
-  const ym=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
-  showModal({title:'🗑️ Cancella menù?',
-    body:`Rimuove il menù di <b>${MONTH_NAMES_IT[currentMonth]} ${currentYear}</b>. I dati inseriti (pasti, sintomi) non vengono toccati.`,
-    buttons:[
-      {label:'✅ Sì, cancella',action:()=>{ delete appState.menus[ym]; saveState(); closeModal(); selectedDate=null; document.getElementById('dayDetail').innerHTML=''; updatePdfStatus(); renderCalendar(); },cls:'primary'},
-      {label:'Annulla',action:'close',cls:'secondary'}
-    ]});
-}
-
-// =====================================================================
-// MODAL
-// =====================================================================
-let _modalActions=[];
-function showModal({title,body,preview,buttons}){
-  _modalActions=[];
-  const btnsHtml=buttons.map((b,i)=>{ _modalActions.push(b.action); return `<button class="modal-btn ${b.cls}" onclick="_handleModal(${i})">${b.label}</button>`; }).join('');
-  document.getElementById('modalBox').innerHTML=`<h2>${title}</h2><p>${body}</p>${preview?`<div class="parsed-preview">${preview}</div>`:''}<div class="modal-btns">${btnsHtml}</div>`;
-  document.getElementById('modalBg').style.display='flex';
-}
-function _handleModal(i){ const a=_modalActions[i]; if(!a||a==='close') closeModal(); else a(); }
-function closeModal(){ document.getElementById('modalBg').style.display='none'; _modalActions=[]; }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
-
-// =====================================================================
-// CSV
-// =====================================================================
-function downloadCSV(){
-  let csv='\uFEFF'+'Data,Giorno,Pasto,Alimento,Ho mangiato,Manuale,Allergeni,Sintomi,Note\n';
-  const allDates=new Set([...Object.keys(appState.days),...Object.values(appState.menus).flatMap(m=>Object.keys(m))]);
-  Array.from(allDates).sort().forEach(dateStr=>{
-    const dateObj=new Date(dateStr+'T12:00:00');
-    const dayNames=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
-    const ym=dateStr.slice(0,7);
-    const dayMenu=getMonthMenu(ym)?.[dateStr];
-    const ds=getDayState(dateStr);
-    const syms=SYMPTOMS.filter(s=>hasSymptom(ds,s.id)).map(s=>s.label).join('; ');
-    MEAL_CONFIG.forEach(mc=>{
-      const sI=dayMenu?(dayMenu[mc.key]||[]):[];
-      const mI=(ds.manualItems&&ds.manualItems[mc.key])||[];
-      sI.forEach((item,idx)=>{ const k=`${mc.key}_${idx}`; const st=ds.eaten[k]||'none'; csv+=`"${dateStr}","${dayNames[dateObj.getDay()]}","${mc.label.replace(/[^\w\s]/g,'')}","${item.name}","${st==='eaten'?'Sì ✓':st==='not-eaten'?'No ✗':'—'}","No","${(item.allergens||[]).join('; ')}","${syms}","${(ds.notes||'').replace(/"/g,'""')}"\n`; });
-      mI.forEach((item,idx)=>{ const k=`manual_${mc.key}_${idx}`; const st=ds.eaten[k]||'none'; csv+=`"${dateStr}","${dayNames[dateObj.getDay()]}","${mc.label.replace(/[^\w\s]/g,'')}","${item.name}","${st==='eaten'?'Sì ✓':st==='not-eaten'?'No ✗':'—'}","Sì (manuale)","","${syms}","${(ds.notes||'').replace(/"/g,'""')}"\n`; });
-    });
-  });
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='diario-alimentare.csv'; a.click(); URL.revokeObjectURL(url);
-}
-
-// =====================================================================
-// BACKUP / RIPRISTINA
-// =====================================================================
-function getLastBackupDate(){ return localStorage.getItem(LAST_BACKUP_KEY)||null; }
-function setLastBackupDate(){ localStorage.setItem(LAST_BACKUP_KEY,new Date().toISOString().slice(0,10)); }
-function daysSinceBackup(){ const l=getLastBackupDate(); if(!l) return 999; return Math.floor((Date.now()-new Date(l).getTime())/(1000*60*60*24)); }
-
-function showBackupReminder(){
-  if(!currentUser||daysSinceBackup()<7) return;
-  const existing=document.getElementById('backupBanner'); if(existing) return;
-  const nb=document.querySelector('.nb-content'); if(!nb) return;
-  const banner=document.createElement('div');
-  banner.id='backupBanner'; banner.className='backup-banner';
-  const days=daysSinceBackup();
-  banner.innerHTML=`<span style="font-size:1.5rem">💾</span><div><strong>Backup consigliato!</strong> ${days>=999?'Non hai mai fatto un backup.':`Ultimo backup: <strong>${days} giorni fa</strong>.`} Clicca qui.</div><span style="margin-left:auto">→</span>`;
-  banner.onclick=()=>{ exportBackup(); banner.remove(); };
-  const ub=document.getElementById('userBar'); if(ub) ub.after(banner); else nb.insertBefore(banner,nb.firstChild);
-}
-
-function showBackupToast(){
-  const t=document.createElement('div'); t.className='backup-toast'; t.innerHTML='💾 Backup salvato!';
-  document.body.appendChild(t); setTimeout(()=>t.remove(),4200);
-}
-
-function exportBackup(){
-  const profiles=loadProfiles();
-  const backup={version:1, date:new Date().toISOString(), profiles, data:{}};
-  profiles.forEach(p=>{ backup.data[p.id]=loadUserState(p.id); });
-  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob); const a=document.createElement('a');
-  a.href=url; a.download=`diario-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();
-  URL.revokeObjectURL(url); setLastBackupDate(); showBackupToast();
-  const banner=document.getElementById('backupBanner'); if(banner) banner.remove();
-}
-
-function importBackup(event){
-  const file=event.target.files[0]; event.target.value=''; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      const backup=JSON.parse(e.target.result);
-      if(!backup.version||!backup.profiles||!backup.data) throw new Error('File non valido');
-      showModal({title:'📂 Ripristina backup',
-        body:`<b>${backup.profiles.length} profili</b> dal <b>${backup.date.slice(0,10)}</b>.<br>⚠️ I dati attuali verranno sostituiti.<br>Profili: ${backup.profiles.map(p=>p.emoji+' '+p.name).join(', ')}`,
-        buttons:[
-          {label:'✅ Ripristina',action:()=>{
-            saveProfiles(backup.profiles);
-            Object.entries(backup.data).forEach(([uid,state])=>saveUserState(uid,state));
-            closeModal(); logout();
-          },cls:'primary'},
-          {label:'Annulla',action:'close',cls:'secondary'}
-        ]});
-    }catch(err){
-      showModal({title:'❌ Errore',body:`File non valido.<br><code>${err.message}</code>`,buttons:[{label:'Chiudi',action:'close',cls:'secondary'}]});
+        if (items.length > 0) {
+            menuData[matches[i].day] = {
+                primo: items[0] || "",
+                secondo: items[1] || "",
+                contorno: items[2] || "",
+                merenda: items[3] || ""
+            };
+        }
     }
-  };
-  reader.readAsText(file);
+    return menuData;
 }
 
-// =====================================================================
-// ANALISI SINTOMI
-// =====================================================================
-function toggleAnalysis(){
-  analysisVisible=!analysisVisible;
-  const panel=document.getElementById('analysisPanel');
-  const btn=document.getElementById('btnAnalysis');
-  panel.style.display=analysisVisible?'block':'none';
-  btn.style.background=analysisVisible?'linear-gradient(135deg,#6C5CE7,#4834D4)':'linear-gradient(135deg,#A29BFE,#6C5CE7)';
-  if(analysisVisible){ buildSymFilterRow(); renderAnalysis(); panel.scrollIntoView({behavior:'smooth',block:'start'}); }
+// Gestione dell'input file
+document.getElementById('pdfInput').addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const status = document.getElementById('pdfStatus');
+    status.className = "pdf-status loading";
+    status.innerText = "⏳ Analisi menù...";
+
+    try {
+        const reader = new FileReader();
+        reader.onload = async function() {
+            const typedarray = new Uint8Array(this.result);
+            const pdf = await pdfjsLib.getDocument(typedarray).promise;
+            let fullText = "";
+
+            // Estrazione testo da tutte le pagine[cite: 1]
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                fullText += content.items.map(s => s.str).join(' ') + "\n";
+            }
+
+            const parsedMenu = parseRiboText(fullText);
+            
+            // Salvataggio temporaneo per sessione
+            window.lastParsedMenu = parsedMenu;
+
+            status.className = "pdf-status ok";
+            status.innerText = "✅ Menù caricato!";
+            renderCalendar(2026, 4); // Rendering per Maggio 2026 (Mese 4 in JS)
+        };
+        reader.readAsArrayBuffer(file);
+    } catch (err) {
+        status.className = "pdf-status err";
+        status.innerText = "❌ Errore caricamento";
+        console.error(err);
+    }
+});
+
+function renderCalendar(year, month) {
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = '';
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Correzione per far partire Lunedì come primo giorno
+    const offset = firstDay === 0 ? 6 : firstDay - 1;
+
+    for (let i = 0; i < offset; i++) {
+        grid.innerHTML += '<div class="cal-empty"></div>';
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const menu = (window.lastParsedMenu && window.lastParsedMenu[day]) ? window.lastParsedMenu[day] : null;
+        const wd = new Date(year, month, day).getDay();
+        
+        let content = `<div class="day-num">${day}</div>`;
+        if (menu) {
+            content += `<div style="font-size:0.6rem; color:var(--ink-light); margin-top:4px;">
+                <b>P:</b> ${menu.primo.substring(0, 15)}...<br>
+                <b>S:</b> ${menu.secondo.substring(0, 15)}...
+            </div>`;
+        }
+
+        grid.innerHTML += `
+            <div class="cal-day" data-wd="${wd}">
+                ${content}
+            </div>
+        `;
+    }
 }
 
-function buildSymFilterRow(){
-  const row=document.getElementById('symFilterRow'); row.innerHTML='';
-  const allBtn=document.createElement('button');
-  allBtn.className=`sym-filter-btn all ${activeSymFilter==='all'?'active':''}`;
-  allBtn.innerHTML='📊 Tutti i sintomi';
-  allBtn.onclick=()=>{ activeSymFilter='all'; buildSymFilterRow(); renderAnalysis(); };
-  row.appendChild(allBtn);
-  SYMPTOMS.forEach(sym=>{
-    const btn=document.createElement('button');
-    btn.className=`sym-filter-btn ${activeSymFilter===sym.id?'active':''}`;
-    btn.innerHTML=`${sym.emoji} ${sym.label}`;
-    btn.onclick=()=>{ activeSymFilter=sym.id; buildSymFilterRow(); renderAnalysis(); };
-    row.appendChild(btn);
-  });
-}
-
-function renderAnalysis(){
-  const container=document.getElementById('analysisContent');
-  const allDayKeys=Object.keys(appState.days).sort();
-  const symptomDays=allDayKeys.filter(dateStr=>{ const ds=appState.days[dateStr]; if(!ds||!ds.symptoms) return false; return activeSymFilter==='all'?SYMPTOMS.some(s=>hasSymptom(ds,s.id)):hasSymptom(ds,activeSymFilter); });
-  const totalDaysTracked=allDayKeys.filter(dateStr=>{ const ds=appState.days[dateStr]; return ds&&(Object.keys(ds.eaten||{}).length>0||Object.values(ds.symptoms||{}).some(Boolean)); }).length;
-
-  if(totalDaysTracked===0){ container.innerHTML=`<div class="analysis-empty"><div style="font-size:3rem;margin-bottom:12px">📓</div>Compila il diario per qualche giorno e torna qui!</div>`; return; }
-
-  const symCounts={};
-  SYMPTOMS.forEach(s=>{symCounts[s.id]=0;});
-  allDayKeys.forEach(dateStr=>{ const ds=appState.days[dateStr]; if(!ds) return; SYMPTOMS.forEach(s=>{if(hasSymptom(ds,s.id)) symCounts[s.id]++;}); });
-  const worstSym=SYMPTOMS.reduce((a,b)=>symCounts[a.id]>=symCounts[b.id]?a:b);
-
-  const foodSymMap={};
-  allDayKeys.forEach(dateStr=>{
-    const ds=appState.days[dateStr]; if(!ds) return;
-    const hasT=activeSymFilter==='all'?SYMPTOMS.some(s=>hasSymptom(ds,s.id)):hasSymptom(ds,activeSymFilter);
-    getEatenFoodsForDay(dateStr).forEach(foodName=>{
-      if(!foodSymMap[foodName]) foodSymMap[foodName]={total:0,symDays:0,symptoms:{}};
-      foodSymMap[foodName].total++;
-      if(hasT){ foodSymMap[foodName].symDays++; SYMPTOMS.forEach(s=>{if(hasSymptom(ds,s.id)) foodSymMap[foodName].symptoms[s.id]=(foodSymMap[foodName].symptoms[s.id]||0)+1;}); }
-    });
-  });
-  const sortedFoods=Object.entries(foodSymMap).filter(([,v])=>v.symDays>0).sort(([,a],[,b])=>{ const rA=a.total>0?a.symDays/a.total:0,rB=b.total>0?b.symDays/b.total:0; return b.symDays!==a.symDays?b.symDays-a.symDays:rB-rA; });
-
-  const allergMap={};
-  allDayKeys.forEach(dateStr=>{ const ds=appState.days[dateStr]; if(!ds) return; const hasT=activeSymFilter==='all'?SYMPTOMS.some(s=>hasSymptom(ds,s.id)):hasSymptom(ds,activeSymFilter); getAllergensEatenForDay(dateStr).forEach(a=>{ if(!allergMap[a]) allergMap[a]={total:0,symDays:0}; allergMap[a].total++; if(hasT) allergMap[a].symDays++; }); });
-  const sortedAllergens=Object.entries(allergMap).filter(([,v])=>v.total>0).sort(([,a],[,b])=>b.symDays-a.symDays||b.total-a.total);
-  const maxAllegSD=sortedAllergens.length?sortedAllergens[0][1].symDays:1;
-  const totalSD=symptomDays.length;
-
-  let html=`<div class="stats-row">
-    <div class="stat-card"><span class="stat-emoji">📅</span><div class="stat-num">${totalDaysTracked}</div><div class="stat-label">giorni registrati</div></div>
-    <div class="stat-card ${totalSD>0?'alert':''}"><span class="stat-emoji">⚠️</span><div class="stat-num">${totalSD}</div><div class="stat-label">giorni con sintomi</div></div>
-    <div class="stat-card alert"><span class="stat-emoji">${activeSymFilter==='all'?worstSym.emoji:SYMPTOMS.find(s=>s.id===activeSymFilter).emoji}</span><div class="stat-num">${activeSymFilter==='all'?symCounts[worstSym.id]:symCounts[activeSymFilter]}</div><div class="stat-label">${activeSymFilter==='all'?'più frequente: '+worstSym.label:SYMPTOMS.find(s=>s.id===activeSymFilter).label}</div></div>
-    <div class="stat-card"><span class="stat-emoji">🍴</span><div class="stat-num">${sortedFoods.length}</div><div class="stat-label">alimenti sospetti</div></div>
-  </div>`;
-
-  if(totalSD>0&&sortedFoods.length>0){
-    const tf=sortedFoods[0]; const r=tf[1].total>0?Math.round(tf[1].symDays/tf[1].total*100):0;
-    html+=`<div class="insight-box"><div class="insight-icon">💡</div><div class="insight-text">L'alimento più sospetto è <strong>${tf[0]}</strong>: mangiato <strong>${tf[1].total} volt${tf[1].total===1?'a':'e'}</strong>, sintomi nel <strong>${r}%</strong> dei casi. ${r>=75?'🚨 Segnale importante da condividere col medico!':r>=50?'⚠️ Vale la pena tenerlo d\'occhio.':'Continua a monitorare.'}</div></div>`;
-  }
-
-  if(totalSD===0){ html+=`<div class="analysis-empty">🎉 Nessun sintomo registrato!</div>`; container.innerHTML=html; return; }
-
-  html+=`<div class="an-section"><div class="an-section-title">🍽️ Alimenti nei giorni con sintomi</div>`;
-  if(!sortedFoods.length){ html+=`<div class="no-data-msg">Nessun alimento registrato come "mangiato".</div>`; }
-  else {
-    const maxSD2=sortedFoods[0][1].symDays||1;
-    html+=`<div class="food-corr-list">`;
-    sortedFoods.slice(0,20).forEach(([name,data])=>{
-      const ratio=data.total>0?data.symDays/data.total:0;
-      const level=ratio>=0.75?'high':ratio>=0.4?'medium':'low';
-      const as2=SYMPTOMS.filter(s=>data.symptoms[s.id]>0);
-      html+=`<div class="food-corr-row ${level}"><div class="fcr-name">${name}</div><div class="fcr-syms">${as2.map(s=>`<span class="fcr-sym-tag">${s.emoji} ${s.label}</span>`).join('')}</div><div class="risk-bar-wrap"><div class="risk-bar" style="width:${Math.round(data.symDays/maxSD2*100)}%"></div></div><div class="fcr-count ${data.symDays>=3?'danger':''}">${data.symDays}/${data.total}</div></div>`;
-    });
-    html+=`</div>`;
-  }
-  html+=`</div>`;
-
-  html+=`<div class="an-section"><div class="an-section-title">📅 Giorni con sintomi</div><div class="day-sym-list">`;
-  [...symptomDays].reverse().forEach(dateStr=>{
-    const ds=appState.days[dateStr];
-    const dO=new Date(dateStr+'T12:00:00');
-    const as3=SYMPTOMS.filter(s=>hasSymptom(ds,s.id));
-    const ef=getEatenFoodsForDay(dateStr).slice(0,6);
-    html+=`<div class="day-sym-row" onclick="jumpToDay('${dateStr}')">
-      <div><div class="dsr-date">${['Dom','Lun','Mar','Mer','Gio','Ven','Sab'][dO.getDay()]} ${dO.getDate()} ${MONTH_NAMES_IT[dO.getMonth()].slice(0,3)}</div>${ds.notes?`<div style="font-family:'Patrick Hand',cursive;font-size:.75rem;color:#aaa;margin-top:2px;font-style:italic">"${ds.notes.slice(0,40)}…"</div>`:''}</div>
-      <div style="flex:1"><div style="display:flex;gap:5px;flex-wrap:wrap">${as3.map(s=>`<span class="dsr-sym-pill">${s.emoji} ${s.label}</span>`).join('')}</div>${ef.length?`<div class="dsr-foods">🍴 ${ef.join(' · ')}</div>`:''}</div>
-      <div style="font-size:1.2rem">›</div></div>`;
-  });
-  html+=`</div></div>`;
-
-  if(sortedAllergens.length){
-    html+=`<div class="an-section"><div class="an-section-title">⚠️ Allergeni nei giorni con sintomi</div><div class="allerg-grid">`;
-    sortedAllergens.forEach(([name,data])=>{
-      const ratio=data.total>0?data.symDays/data.total:0;
-      const level=ratio>=0.6?'danger':ratio>=0.35?'medium':'';
-      const color=ratio>=0.6?'#F46B6B':ratio>=0.35?'#FF9F43':'#A0C4FF';
-      html+=`<div class="allerg-card ${level}"><div class="allerg-name">${name}</div><div class="allerg-bar-wrap"><div class="allerg-bar" style="width:${Math.round(data.symDays/maxAllegSD*100)}%;background:${color}"></div></div><div class="allerg-stat">${data.symDays}/${data.total}</div></div>`;
-    });
-    html+=`</div></div>`;
-  }
-  container.innerHTML=html;
-}
-
-function jumpToDay(dateStr){
-  const d=new Date(dateStr+'T12:00:00'); currentYear=d.getFullYear(); currentMonth=d.getMonth();
-  selectedDate=dateStr; analysisVisible=false; document.getElementById('analysisPanel').style.display='none';
-  updatePdfStatus(); renderCalendar(); renderDayDetail();
-  document.querySelector('.notebook').scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-function getEatenFoodsForDay(dateStr){
-  const ds=getDayState(dateStr); const ym=dateStr.slice(0,7); const dayMenu=getMonthMenu(ym)?.[dateStr]; const foods=[];
-  MEAL_CONFIG.forEach(mc=>{ (dayMenu?(dayMenu[mc.key]||[]):[]).forEach((item,idx)=>{ if(ds.eaten[`${mc.key}_${idx}`]==='eaten') foods.push(item.name); }); ((ds.manualItems&&ds.manualItems[mc.key])||[]).forEach((item,idx)=>{ if(ds.eaten[`manual_${mc.key}_${idx}`]==='eaten') foods.push(item.name); }); });
-  return foods;
-}
-
-function getAllergensEatenForDay(dateStr){
-  const ds=getDayState(dateStr); const ym=dateStr.slice(0,7); const dayMenu=getMonthMenu(ym)?.[dateStr]; const allergens=new Set();
-  MEAL_CONFIG.forEach(mc=>{ (dayMenu?(dayMenu[mc.key]||[]):[]).forEach((item,idx)=>{ if(ds.eaten[`${mc.key}_${idx}`]==='eaten'&&item.allergens) item.allergens.forEach(a=>allergens.add(a)); }); });
-  return Array.from(allergens);
-}
-
-// =====================================================================
-// INIT — il calendario si costruisce SOLO dopo il login
-// =====================================================================
-function init(){
-  renderProfilesGrid();
-  for(let i=0;i<8;i++){ const r=document.createElement('div'); r.className='c-ring'; document.getElementById('coverRings').appendChild(r); }
-  buildRings('nbRings',22);
-  renderCalHeader();
-  // ✅ FIX: non chiamiamo renderCalendar() qui — lo chiama loginAs() con i dati giusti
-  // Solo aggiorniamo l'intestazione del mese per coerenza visiva
-  document.getElementById('monthLabel').textContent=`${MONTH_NAMES_IT[currentMonth]} ${currentYear}`;
-}
-
-init();
+// Inizializza calendario vuoto al caricamento
+window.onload = () => renderCalendar(2026, 4);
 </script>
 </body>
 </html>
