@@ -1011,7 +1011,10 @@ function confirmLoadMenu(parsed,ym,year,month){
   document.getElementById('btnClearMenu').style.display='block';
   renderCalendar();
 }
-
+function buildDateStr(year,month,day){
+  if(day<1||day>31) return null;
+  try{ const d=new Date(year,month-1,day); if(d.getMonth()!==month-1) return null; return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`; }catch(e){return null;}
+}
 // ---- PARSER XY (identico alla versione corretta precedente) ----
 function parseMenuFromItems(items, pageHeight){
   const LEGEND_TRIGGERS=['legenda','note:','spuntino','inoltre','rotazione',
@@ -1154,10 +1157,6 @@ function capitalizeFood(s){
   if(!s) return '';
   return s.toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase())
     .replace(/\b(Al|Di|Con|E|A|Da|In|Su|Per|Del|Della|Dello|Dei|Degli|Delle|Il|La|Lo|Le|Gli)\b/g,w=>w.toLowerCase()).trim();
-}
-function buildDateStr(year,month,day){
-  if(day<1||day>31) return null;
-  try{ const d=new Date(year,month-1,day); if(d.getMonth()!==month-1) return null; return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`; }catch(e){return null;}
 }
 function buildPreview(parsed){
   let html='';
