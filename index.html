@@ -1014,110 +1014,129 @@ function confirmLoadMenu(parsed,ym,year,month){
 
 // ---- PARSER XY (identico alla versione corretta precedente) ----
 function parseMenuFromItems(items, pageHeight){
-  const LEGEND_TRIGGERS=['legenda','note:','spuntino','inoltre','rotazione','piatto da scoprire','ricetta del mese'];
-  let legendCutoffY=0;
-  items.forEach(item=>{ const s=item.str.toLowerCase().trim(); if(LEGEND_TRIGGERS.some(k=>s.startsWith(k))) legendCutoffY=Math.max(legendCutoffY,item.y+2); });
-  if(legendCutoffY>0) items=items.filter(i=>i.y>legendCutoffY);
+  const LEGEND_TRIGGERS=['legenda','note:','spuntino','inoltre','rotazione',
+    'piatto da scoprire','ricetta del mese'];
 
-  let detectedYear=new Date().getFullYear(), detectedMonth=new Date().getMonth()+1;
-  const fullStr=items.map(i=>i.str).join(' ');
-  const mMatch=fullStr.match(/\b(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)\s+(\d{4})\b/i);
-  if(mMatch){ detectedMonth=MONTHS_MAP[mMatch[1].toLowerCase()]; detectedYear=parseInt(mMatch[2]); }
-
-  let xPrimo=52,xSecondo=259,xContorno=398,xMerenda=553,xSnack=693;
+  // Trova la Y della legenda (cutoff INFERIORE — Y piccola = basso pagina in pdf.js)
+  let legendCutoffY = Infinity;
   items.forEach(item=>{
-    const s=item.str.toLowerCase().trim();
+    const s = item.str.toLowerCase().trim();
+    if(LEGEND_TRIGGERS.some(k => s.startsWith(k)))
+      legendCutoffY = Math.min(legendCutoffY, item.y - 2);
+  });
+  if(legendCutoffY < Infinity)
+    items = items.filter(i => i.y > legendCutoffY);
+
+  // Rileva mese/anno
+  let detectedYear = new Date().getFullYear(),
+      detectedMonth = new Date().getMonth()+1;
+  const fullStr = items.map(i=>i.str).join(' ');
+  const mMatch = fullStr.match(
+    /\b(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)\s+(\d{4})\b/i);
+  if(mMatch){
+    detectedMonth = MONTHS_MAP[mMatch[1].toLowerCase()];
+    detectedYear  = parseInt(mMatch[2]);
+  }
+
+  // Rileva posizioni X delle colonne dall'intestazione
+  let xPrimo=52, xSecondo=259, xContorno=398, xMerenda=553, xSnack=693;
+  items.forEach(item=>{
+    const s = item.str.toLowerCase().trim();
     if(s==='primi piatti'||(s.includes('primi')&&s.includes('piatti'))) xPrimo=item.x;
     if(s==='secondi piatti'||(s.includes('secondi')&&s.includes('piatti'))) xSecondo=item.x;
-    if(s==='contorni') xContorno=item.x;
-    if(s==='merende') xMerenda=item.x;
+    if(s==='contorni')  xContorno=item.x;
+    if(s==='merende')   xMerenda=item.x;
     if(s==='snack'&&s.length<10) xSnack=item.x;
   });
-  const midPS=Math.round((xPrimo+xSecondo)/2);
-  const midSC=Math.round((xSecondo+xContorno)/2);
-  const midCM=Math.round((xContorno+xMerenda)/2);
-  const midMS=Math.round((xMerenda+xSnack)/2);
-  function getColByX(x){ if(x<midPS) return 'primo'; if(x<midSC) return 'secondo'; if(x<midCM) return 'contorno'; if(x<midMS) return 'merenda'; return 'snack'; }
+  const midPS = Math.round((xPrimo+xSecondo)/2);
+  const midSC = Math.round((xSecondo+xContorno)/2);
+  const midCM = Math.round((xContorno+xMerenda)/2);
+  const midMS = Math.round((xMerenda+xSnack)/2);
+  function getColByX(x){
+    if(x < midPS) return 'primo';
+    if(x < midSC) return 'secondo';
+    if(x < midCM) return 'contorno';
+    if(x < midMS) return 'merenda';
+    return 'snack';
+  }
 
-  const dayPattern=/^(lun|mar|mer|gio|ven)\s+(\d{1,2})/i;
-  const schoolDays=[];
+  // Trova le righe dei giorni scolastici
+  const dayPattern = /^(lun|mar|mer|gio|ven)\s+(\d{1,2})/i;
+  const schoolDays = [];
   items.forEach(item=>{
-    const m=item.str.trim().match(dayPattern);
-    if(m){ const dayNum=parseInt(m[2]); const ds=buildDateStr(detectedYear,detectedMonth,dayNum); if(ds&&!schoolDays.find(d=>d.dateStr===ds)) schoolDays.push({dayNum,dateStr:ds,yTop:item.y}); }
+    const m = item.str.trim().match(dayPattern);
+    if(m){
+      const dayNum = parseInt(m[2]);
+      const ds = buildDateStr(detectedYear, detectedMonth, dayNum);
+      if(ds && !schoolDays.find(d=>d.dateStr===ds))
+        schoolDays.push({dayNum, dateStr:ds, yTop:item.y});
+    }
   });
-  schoolDays.sort((a,b)=>b.yTop-a.yTop);
-  if(schoolDays.length===0) return {};
 
-  schoolDays.forEach((day,idx)=>{ day.yBottom=idx<schoolDays.length-1?schoolDays[idx+1].yTop-1:Y_TABLE_MIN; });
+  // ✅ FIX: ordina per Y DECRESCENTE (alto → basso nella pagina pdf.js)
+  schoolDays.sort((a,b) => b.yTop - a.yTop);
+  if(schoolDays.length === 0) return {};
 
-  const result={};
+  // ✅ FIX: yBottom = Y del giorno SUCCESSIVO (più basso in pagina) - margine
+  //    L'ultimo giorno prende come yBottom la Y minima tra tutti gli item rimasti
+  const minItemY = Math.min(...items.map(i=>i.y));
+  schoolDays.forEach((day, idx)=>{
+    if(idx < schoolDays.length - 1){
+      day.yBottom = schoolDays[idx+1].yTop - 1;
+    } else {
+      // ✅ Ultimo giorno: usa la Y più bassa trovata nel documento
+      day.yBottom = minItemY - 2;
+    }
+  });
+
+  // Trova la Y dell'intestazione colonne (la riga più alta in assoluto)
+  const headerY = Math.max(...schoolDays.map(d=>d.yTop)) + 30;
+
+  // Inizializza struttura risultato
+  const result = {};
   schoolDays.forEach(day=>{
-    result[day.dateStr]={
-      colazione:[{name:'Latte fresco + Pane',allergens:['latte','glutine']}],
-      spuntino1:[],pranzo:[],merenda:[],
-      cena:[{name:'Pasto libero 🏠',allergens:[]}],
-      _raw:{primo:[],secondo:[],contorno:[],merenda:[],snack:[]}
+    result[day.dateStr] = {
+      colazione: [{name:'Latte fresco + Pane', allergens:['latte','glutine']}],
+      spuntino1: [], pranzo: [], merenda: [],
+      cena: [{name:'Pasto libero 🏠', allergens:[]}],
+      _raw: {primo:[], secondo:[], contorno:[], merenda:[], snack:[]}
     };
   });
 
-  const headerY=Math.max(...schoolDays.map(d=>d.yTop))+25;
+  // Assegna ogni item al giorno e alla colonna corretti
   items.forEach(item=>{
-    if(item.y>headerY) return;
-    if(item.x<=50) return;
-    const day=schoolDays.find(d=>item.y<=d.yTop+5&&item.y>=d.yBottom-5);
+    if(item.y > headerY) return;  // intestazione tabella, skip
+    if(item.x <= 50) return;      // colonna etichette giorno, skip
+
+    // ✅ FIX: cerca il giorno in cui cade item.y (tra yBottom e yTop)
+    const day = schoolDays.find(d => item.y <= d.yTop + 5 && item.y >= d.yBottom);
     if(!day) return;
-    const col=getColByX(item.x);
+
+    const col = getColByX(item.x);
     result[day.dateStr]._raw[col].push(item.str);
   });
 
+  // Costruisce le voci pasto da _raw
   schoolDays.forEach(day=>{
-    const dd=result[day.dateStr], raw=dd._raw;
-    const primoText=raw.primo.join(' ').trim();
+    const dd = result[day.dateStr], raw = dd._raw;
+    const primoText = raw.primo.join(' ').trim();
     if(primoText){ const {name,allergens}=extractNameAndAllergens(primoText); if(name) dd.pranzo.push({name,allergens,category:'primo'}); }
-    const secondoText=raw.secondo.join(' ').trim();
+    const secondoText = raw.secondo.join(' ').trim();
     if(secondoText){ const {name,allergens}=extractNameAndAllergens(secondoText); if(name) dd.pranzo.push({name,allergens,category:'secondo'}); }
-    const contornoText=raw.contorno.join(' ').trim();
+    const contornoText = raw.contorno.join(' ').trim();
     if(contornoText){ const {name,allergens}=extractNameAndAllergens(contornoText); if(name) dd.pranzo.push({name,allergens,category:'contorno'}); }
-    const merendaText=raw.merenda.join(' ').trim();
-    if(merendaText){ const {name,allergens}=extractNameAndAllergens(merendaText); dd.merenda.push({name:name||'Frutta 🍎',allergens}); } else dd.merenda.push({name:'Frutta 🍎',allergens:[]});
-    const snackText=raw.snack.join(' ').trim();
-    if(snackText){ const {name,allergens}=extractNameAndAllergens(snackText); dd.spuntino1.push({name:name.replace(/^snack\s*\d*\s*/i,'').replace(/\bmattina\b/gi,'').trim()||snackText,allergens}); } else dd.spuntino1.push({name:'Frutta fresca 🍎',allergens:[]});
+    const merendaText = raw.merenda.join(' ').trim();
+    if(merendaText){ const {name,allergens}=extractNameAndAllergens(merendaText);
+      dd.merenda.push({name:name||'Frutta 🍎', allergens});
+    } else dd.merenda.push({name:'Frutta 🍎', allergens:[]});
+    const snackText = raw.snack.join(' ').trim();
+    if(snackText){ const {name,allergens}=extractNameAndAllergens(snackText);
+      dd.spuntino1.push({name:name.replace(/^snack\s*\d*\s*/i,'').replace(/\bmattina\b/gi,'').trim()||snackText, allergens});
+    } else dd.spuntino1.push({name:'Frutta fresca 🍎', allergens:[]});
     delete dd._raw;
   });
-  return result;
-}
 
-function extractNameAndAllergens(text){
-  const idx=text.search(/\b(?:glutine|soia|latte|uova|uovo|pesce|senape|sesamo|lupino|molluschi|crostacei|frutta a guscio|arachidi|sedano|solfiti)\b/i);
-  let namePart=text, allergPart='';
-  if(idx>0){ namePart=text.slice(0,idx).trim(); allergPart=text.slice(idx); }
-  const name=namePart.replace(/\*+/g,'').replace(/\.\./g,'').replace(/\bLt\s+\d+\b/gi,'').replace(/\s+/g,' ').trim();
-  return {name:capitalizeFood(name), allergens:extractAllergens(allergPart||text)};
-}
-function extractAllergens(text){
-  const found=[];
-  [...ALLERGENS_LIST].sort((a,b)=>b.length-a.length).forEach(a=>{ if(new RegExp(a.replace(/\s+/g,'\\s+'),'i').test(text)&&!found.includes(a)) found.push(a); });
-  return found;
-}
-function capitalizeFood(s){
-  if(!s) return '';
-  return s.toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase())
-    .replace(/\b(Al|Di|Con|E|A|Da|In|Su|Per|Del|Della|Dello|Dei|Degli|Delle|Il|La|Lo|Le|Gli)\b/g,w=>w.toLowerCase()).trim();
-}
-function buildDateStr(year,month,day){
-  if(day<1||day>31) return null;
-  try{ const d=new Date(year,month-1,day); if(d.getMonth()!==month-1) return null; return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`; }catch(e){return null;}
-}
-function buildPreview(parsed){
-  let html='';
-  Object.keys(parsed).sort().slice(0,5).forEach(dateStr=>{
-    const d=new Date(dateStr+'T12:00:00');
-    html+=`<div class="p-day">${['Dom','Lun','Mar','Mer','Gio','Ven','Sab'][d.getDay()]} ${d.getDate()}</div>`;
-    if(parsed[dateStr].pranzo?.length) html+=`<div>🍽️ ${parsed[dateStr].pranzo.map(x=>x.name).join(' · ')}</div>`;
-  });
-  const tot=Object.keys(parsed).length;
-  if(tot>5) html+=`<div style="color:#aaa;margin-top:6px">...e altri ${tot-5} giorni</div>`;
-  return html;
+  return result;
 }
 
 // =====================================================================
